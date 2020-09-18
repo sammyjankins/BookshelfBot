@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+            <h3 class="card-title">Все произведения:</h3>
+            <div class="card-text">
+
+                {% regroup novels|dictsortreversed:"author.name"  by id as novel_list %}
+                <div class="list-group text-center">
+
+                    {% for novels in novel_list %}
+                        {% for novel in novels.list %}
+                            {% if novel.read %}<b>{% endif %}
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:novel/' pk=novel.id %}">
+                                    {{ novel.author.name }} - {{ novel.title }}, {{ novel.genre_tags }}
+                            </a>{% if novel.read %}</b>{% endif %}
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                               href="{% url 'shelves:novel/create/' %}">Add new novel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

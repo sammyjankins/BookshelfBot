@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card px-4 py-4">
+
+        <h3 class="card-title text-center">New novel creation</h3>
+        <div class="container">
+            <form action="{% url 'shelves:novel/create/' %}" method="POST">
+                {% csrf_token %}
+                {% render_form serializer template_pack='rest_framework/vertical' %}
+                <div class="form-group ">
+                    <label>
+                        Книга
+                    </label>
+                    <select class="form-control mb-3" name="book">
+                        {% for item in book %}
+                            <option value="{{ item.id }}">{{ item.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>
+                        Автор
+                    </label>
+                    <select class="form-control mb-3" name="author">
+                        {% for person in author %}
+                            <option value="{{ person.id }}">{{ person.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input class="btn btn-outline-dark" type="submit" value="Save">
+            </form>
+        </div>
+    </div>
+
+
+{% endblock content %}

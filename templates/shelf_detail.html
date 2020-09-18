@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between">
+
+                <span>
+                    <a href="{% url "shelves:shelf/edit/" shelf.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">EDIT</a>
+                </span>
+
+                <h3 class="card-title">Шкаф:
+                    <a href="{% url "shelves:bookcase/" shelf.bookcase.id %}"
+                       class="text-dark text-decoration-none">{{ shelf.bookcase.title }}</a>
+                    <br> {{ shelf.title }}<br>Ряд - {{ shelf.row }}</h3>
+
+
+                <span>
+                    <a href="{% url "shelves:shelf/delete/" shelf.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">DELETE</a>
+                </span>
+
+            </div>
+
+            <div class="card-text">
+
+
+                <h5>Книги:</h5>
+
+                {% regroup shelf.books.all|dictsortreversed:"read"  by id as book_list %}
+                <div class="list-group">
+
+                    {% for books in book_list %}
+                        {% for book in books.list %}
+
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:book/' pk=book.id %}">
+                                {% if book.read %}<b>{% endif %}
+
+                                <div class="d-flex justify-content-between">
+                                <span>
+                                    {{ book.author }} - {{ book.title }} ({{ book.year_of_publication }}) - {{ book.pages }} страниц
+                                </span>
+                                    <span>
+                                    {{ book.bookcase }} - {{ book.shelf }}, {{ book.shelf.row }} ряд
+                                </span>
+                                </div>
+                                {% if book.read %}</b>{% endif %}
+
+                            </a>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                       href="{% url 'shelves:book/create/' %}">Add new book</a>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

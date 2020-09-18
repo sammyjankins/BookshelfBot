@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% if title %}
+        <title>{{ title }}</title>
+    {% else %}
+        <title>Bookcase App</title>
+    {% endif %}
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static "shelf/main.css" %}">
+</head>
+
+
+<body>
+<div style="background: url(https://plasticbanners.com/img/library/xl/PB4_B_bookcase_library.jpg), rgba(28,31,30,0.3);"
+     class="page-holder bg-cover">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <!-- Navbar content -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+            <ul class="navbar-nav mr-auto">
+
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        Bookcases
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{% url 'shelves:bookcase/all/' %}">All</a>
+                        <a class="dropdown-item" href="{% url 'shelves:bookcase/create/' %}">New</a>
+                        <div class="dropdown-divider"></div>
+                        <form class="px-3" action="{% url 'shelves:bookcase/all/' %}" method="GET">
+                            {% csrf_token %}
+                            <input id="search" name="q" type="text" class="form-control my-2" placeholder="Search">
+                            <input class="btn btn-outline-dark" type="submit" value="Go">
+                        </form>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        Shelves
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{% url 'shelves:shelf/all/' %}">All</a>
+                        <a class="dropdown-item" href="{% url 'shelves:shelf/create/' %}">New</a>
+                        <div class="dropdown-divider"></div>
+                        <form class="px-3" action="{% url 'shelves:shelf/all/' %}" method="GET">
+                            {% csrf_token %}
+                            <input id="search" name="q" type="text" class="form-control my-2" placeholder="Search">
+                            <input class="btn btn-outline-dark" type="submit" value="Go">
+                        </form>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        Authors
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{% url 'shelves:author/all/' %}">All</a>
+                        <a class="dropdown-item" href="{% url 'shelves:author/create/' %}">New</a>
+                        <div class="dropdown-divider"></div>
+                        <form class="px-3" action="{% url 'shelves:author/all/' %}" method="GET">
+                            {% csrf_token %}
+                            <input id="search" name="q" type="text" class="form-control my-2" placeholder="Search">
+                            <input class="btn btn-outline-dark" type="submit" value="Go">
+                        </form>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        Books
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{% url 'shelves:book/all/' %}">All</a>
+                        <a class="dropdown-item" href="{% url 'shelves:book/create/' %}">New</a>
+                        <div class="dropdown-divider"></div>
+                        <form class="px-3" action="{% url 'shelves:book/all/' %}" method="GET">
+                            {% csrf_token %}
+                            <input id="search" name="q" type="text" class="form-control my-2" placeholder="Search">
+                            <input class="btn btn-outline-dark" type="submit" value="Go">
+                        </form>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+                        Novels
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{% url 'shelves:novel/all/' %}">All</a>
+                        <a class="dropdown-item" href="{% url 'shelves:novel/create/' %}">New</a>
+                        <div class="dropdown-divider"></div>
+                        <form class="px-3" action="{% url 'shelves:novel/all/' %}" method="GET">
+                            {% csrf_token %}
+                            <input id="search" name="q" type="text" class="form-control my-2" placeholder="Search">
+                            <input class="btn btn-outline-dark" type="submit" value="Go">
+                        </form>
+                    </div>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav mr-auto">
+
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'shelves:user/detail/' %}">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'shelves:user/register/' %}">Register</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid pt-5">
+        <div class="row">
+            <div class="col"></div>
+
+            <div class="col-lg-8 col-sm-12">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}"> {{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+
+
+            <div class="col"></div>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+</div>
+</body>
+
+</html>

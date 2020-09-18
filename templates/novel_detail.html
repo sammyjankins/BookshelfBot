@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between">
+
+                <span>
+                    <a href="{% url "shelves:novel/edit/" novel.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">EDIT</a>
+                </span>
+
+                <h3 class="card-title">Novel - {{ novel.title }},
+                    <a href="{% url "shelves:author/" novel.author.id %}"
+                       class="text-dark text-decoration-none">{{ novel.author }}</a><br> из книги
+                    <a href="{% url "shelves:book/" novel.book.id %}"
+                       class="text-dark text-decoration-none">"{{ novel.book }}"</a>
+                    {% if novel.read %}
+                        <span class="text-success">Прочитано</span>
+                    {% else %}
+                        <span class="text-danger">Не прочитано</span>
+                    {% endif %}
+                </h3>
+                <span>
+                <a href="{% url "shelves:novel/delete/" novel.id %}"
+                   class="btn btn-outline-dark"
+                   role="button">DELETE</a>
+                </span>
+
+            </div>
+
+
+            <div class="card-text">
+                <h5>Автор: <a href="{% url "shelves:author/" novel.author.id %}"
+                              class="text-dark text-decoration-none">{{ novel.author }}</a></h5>
+                <h5>Год создания: {{ novel.year_of_creation }}</h5>
+                <h5>{{ novel.genre_tags }}</h5>
+
+                <h4>Шкаф: <a href="{% url "shelves:bookcase/" novel.book.bookcase.id %}"
+                             class="text-dark text-decoration-none">{{ novel.book.bookcase }}</a></h4>
+                <h4>Полка: <a href="{% url "shelves:shelf/" novel.book.shelf.id %}"
+                              class="text-dark text-decoration-none">{{ novel.book.shelf }}, ряд
+                    - {{ novel.book.shelf.row }}</a></h4>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

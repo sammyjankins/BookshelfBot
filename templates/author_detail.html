@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between">
+
+                <span>
+                    <a href="{% url "shelves:author/edit/" author.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">EDIT</a>
+                </span>
+
+                <h3 class="card-title">{{ author.name }}</h3>
+
+                <span>
+                    <a href="{% url "shelves:author/delete/" author.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">DELETE</a>
+                </span>
+
+            </div>
+
+
+            <div class="card-text">
+                <h4>Год рождения: {{ author.date_of_birth }}</h4>
+                <h4>Страна: {{ author.country }}</h4>
+                <h5>Книги:</h5>
+
+                {% regroup author.books.all|dictsort:"year_of_publication"  by id as book_list %}
+                <div class="list-group">
+
+                    {% for books in book_list %}
+                        {% for book in books.list %}
+
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:book/' pk=book.id %}">
+                                {% if book.read %}<b>{% endif %}
+
+                                <div class="d-flex justify-content-between">
+                                <span>
+                                    {{ book.title }} ({{ book.year_of_publication }}) - {{ book.pages }} страниц
+                                </span>
+                                    <span>
+                                    {{ book.bookcase }} - {{ book.shelf }}, ряд - {{ book.shelf.row }}
+                                </span>
+                                </div>
+                                {% if book.read %}</b>{% endif %}
+
+                            </a>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                       href="{% url 'shelves:book/create/' %}">Add new book</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card px-4 py-4">
+
+        <h3 class="card-title text-center">Edit shelf info for {{ shelf.title }}</h3>
+        <div class="container">
+            <form action="{% url 'shelves:shelf/edit/' shelf.id %}" method="POST">
+                {% csrf_token %}
+                {% render_form serializer template_pack='rest_framework/vertical' %}
+                <div class="form-group ">
+                    <label>
+                        Книжный шкаф
+                    </label>
+                    <select class="form-control" name="bookcase">
+                        {% for case in bookcase %}
+                            <option value="{{ case.id }}">{{ case.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input class="btn btn-outline-dark" type="submit" value="Save">
+            </form>
+        </div>
+    </div>
+
+
+{% endblock content %}

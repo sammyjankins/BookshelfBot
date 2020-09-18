@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+            <h3 class="card-title">Все авторы:</h3>
+            <div class="card-text">
+
+                {% regroup authors|dictsortreversed:"name"  by id as author_list %}
+                <div class="list-group">
+
+                    {% for authors in author_list %}
+                        {% for author in authors.list %}
+
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:author/' pk=author.id %}">
+                                    {{ author.name }} - {{ author.date_of_birth }} {{ author_country }}
+                                     - {{ author.books.all|length }} книг
+                            </a>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                               href="{% url 'shelves:author/create/' %}">Add new author</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

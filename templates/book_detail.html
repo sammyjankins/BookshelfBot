@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between">
+
+                <span>
+                    <a href="{% url "shelves:book/edit/" book.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">EDIT</a>
+                </span>
+
+                <h3 class="card-title">
+                    <a href="{% url "shelves:author/" book.author.id %}"
+                       class="text-dark text-decoration-none">{{ book.author }}</a>
+                    - {{ book.title }}
+                    {% if book.read %}
+                        <span class="text-success">Прочитано</span>
+                    {% else %}
+                        <span class="text-danger">Не прочитано</span>
+                    {% endif %}
+                </h3>
+                <span>
+                    <a href="{% url "shelves:book/delete/" book.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">DELETE</a>
+                </span>
+
+            </div>
+
+
+            <div class="card-text">
+                <h5>Год издания: {{ book.year_of_publication }}</h5>
+                <h5>{{ book.pages }} страниц, язык - {{ book.language }}</h5>
+                <h5>ISBN: {{ book.ISBN }}</h5>
+                <h5>Обложка: {{ book.type_of_cover }}</h5>
+
+                <h4>Шкаф: <a href="{% url "shelves:bookcase/" book.bookcase.id %}"
+                             class="text-dark text-decoration-none">{{ book.bookcase }}</a></h4>
+                <h4>Полка: <a href="{% url "shelves:shelf/" book.shelf.id %}"
+                              class="text-dark text-decoration-none">{{ book.shelf }}, ряд - {{ book.shelf.row }}</a>
+                </h4>
+                <h5>Произведения:</h5>
+
+                {% regroup book.novels.all|dictsort:"year_of_creation"  by id as novels_list %}
+                <div class="list-group">
+
+                    {% for novels in novels_list %}
+                        {% for novel in novels.list %}
+
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:novel/' pk=novel.id %}">
+                                {% if novel.read %}<b>{% endif %}
+                                <div class="d-flex justify-content-between">
+                                    {{ novel.title }} ({{ novel.year_of_creation }}) - {{ novel.genre_tags }}
+                                    <span>
+                                    {{ novel.author }}
+                                    </span>
+                                </div>
+                                {% if novel.read %}</b>{% endif %}
+                            </a>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                       href="{% url 'shelves:novel/create/' %}">Add new novel</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

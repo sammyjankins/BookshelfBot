@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+            <h3 class="card-title">Все шкафы:</h3>
+            <div class="card-text">
+
+                {% regroup bookcases|dictsortreversed:"title"  by id as bookcase_list %}
+                <div class="list-group text-center">
+
+                    {% for bookcases in bookcase_list %}
+                        {% for bookcase in bookcases.list %}
+
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:bookcase/' pk=bookcase.id %}">
+                                    {{ bookcase.title }} - {{ bookcase.books.all|length }} книг
+                            </a>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                               href="{% url 'shelves:bookcase/create/' %}">Add new bookcase</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}

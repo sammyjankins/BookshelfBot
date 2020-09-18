@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load rest_framework %}
+{% block content %}
+
+    <div class="card text-center">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <span>
+                    <a href="{% url "shelves:bookcase/edit/" bookcase.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">EDIT</a>
+                </span>
+
+                <h3 class="card-title">Bookcase: {{ bookcase.title }}</h3>
+
+                <span>
+                    <a href="{% url "shelves:bookcase/delete/" bookcase.id %}"
+                       class="btn btn-outline-dark"
+                       role="button">DELETE</a>
+                </span>
+            </div>
+            <div class="card-text">
+
+                <h4>Owner: {{ bookcase.owner }}</h4>
+
+                <h5>Полки:</h5>
+
+                {% regroup bookcase.shelves.all|dictsort:"title"  by id as shelve_list %}
+                <div class="list-group">
+
+                    {% for shelve in shelve_list %}
+                        {% for shelf in shelve.list %}
+
+                            <a class="list-group-item list-group-item-action"
+                               href="{% url 'shelves:shelf/' pk=shelf.id %}">
+                                {{ shelf.title }}, {{ shelf.row }} ряд - {{ shelf.books.all|length }} книг
+                            </a>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <a class="list-group-item list-group-item-action list-group-item-light"
+                               href="{% url 'shelves:shelf/create/' %}">Add new shelf</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
