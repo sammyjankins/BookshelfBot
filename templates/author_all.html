@@ -2,24 +2,35 @@
 {% load rest_framework %}
 {% block content %}
 
-    <div class="card text-center">
+    <div class="card text-center mb-4">
         <div class="card-body">
             <h3 class="card-title">Все авторы:</h3>
-            <div class="card-text">
 
-                {% regroup authors|dictsortreversed:"name"  by id as author_list %}
+            {# pagination #}
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    {% if previous %}
+                        <a class="page-link text-dark text-decoration-none" href={{ previous }}>previous authors</a>
+                    {% endif %}
+                </li>
+                <li class="page-item">
+                    {% if next %}
+                        <a class="page-link text-dark text-decoration-none" href={{ next }}>next authors</a>
+                    {% endif %}
+                </li>
+            </ul>
+
+            <div class="card-text">
                 <div class="list-group">
 
-                    {% for authors in author_list %}
-                        {% for author in authors.list %}
+                        {% for author in results %}
 
                             <a class="list-group-item list-group-item-action"
                                href="{% url 'shelves:author/' pk=author.id %}">
-                                    {{ author.name }} - {{ author.date_of_birth }} {{ author_country }}
-                                     - {{ author.books.all|length }} книг
+                                    {{ author.name }} - {{ author.date_of_birth }}
+                                     - {{ author.books|length }} книг
                             </a>
                         {% endfor %}
-                    {% endfor %}
 
                     <a class="list-group-item list-group-item-action list-group-item-light"
                                href="{% url 'shelves:author/create/' %}">Add new author</a>

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import Model, Q
 from django.http import HttpResponseRedirect
 from rest_framework import generics
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import get_object_or_404, ListAPIView
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -92,29 +92,25 @@ class MyUpdateView(generics.UpdateAPIView):
         return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[serializer.data["id"]]))
 
 
-class MyListView(APIView):
+class MyListView(ListAPIView):
     renderer_classes = [TemplateHTMLRenderer]
-    prefix = ''
     in_class = Model
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.template_name = f'{self.prefix}_all.html'
-
-    def get(self, request):
-        question = request.GET.get('q')
-        print(question)
+    def get_queryset(self, *args, **kwargs):
+        question = self.request.GET.get('q')
+        objects = self.in_class.objects.filter(owner__username=self.request.user)
         if question is not None:
-            objects = self.in_class.objects.filter(
+            objects = objects.filter(
                 (Q(title__icontains=question) |
                  Q(title__in=question.split()) |
                  Q(title__icontains=question.title()) |
-                 Q(title__in=question.title().split())) &
-                Q(owner__username=request.user)
-            )
-        else:
-            objects = self.in_class.objects.filter(owner__username=request.user)
-        return Response({f'{self.prefix}s': objects})
+                 Q(title__in=question.title().split())))
+        return objects.order_by('-id')
+
+    # def get(self, request, *args, **kwargs):
+    #     resp = super(MyListView, self).get(request, *args, **kwargs)
+    #     print(resp.data)
+    #     return resp
 
 
 class MyDetailView(generics.RetrieveAPIView):
@@ -164,8 +160,9 @@ class BookCaseUpdateView(MyUpdateView):
 
 
 class BookCaseListView(MyListView):
-    prefix = 'bookcase'
     in_class = BookCase
+    template_name = 'bookcase_all.html'
+    serializer_class = serializers.BookCaseListSerializer
 
 
 class BookCaseDetailView(MyDetailView):
@@ -196,8 +193,9 @@ class ShelfUpdateView(MyUpdateView):
 
 
 class ShelfListView(MyListView):
-    prefix = 'shelf'
+    template_name = 'shelf_all.html'
     in_class = Shelf
+    serializer_class = serializers.ShelfListSerializer
 
 
 class ShelfDetailView(MyDetailView):
@@ -225,22 +223,19 @@ class AuthorUpdateView(MyUpdateView):
     in_class = Author
 
 
-class AuthorListView(APIView):
+class AuthorListView(ListAPIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'author_all.html'
+    serializer_class = serializers.AuthorListSerializer
 
-    def get(self, request):
-        question = request.GET.get('q')
+    def get_queryset(self, *args, **kwargs):
+        question = self.request.GET.get('q')
+        objects = Author.objects.filter(owner__username=self.request.user)
         if question is not None:
-            question = question.capitalize()
-            authors = Author.objects.filter(
+            objects = objects.filter(
                 (Q(name__icontains=question) |
-                 Q(name__in=question.split())) &
-                Q(owner__username=request.user)
-            )
-        else:
-            authors = Author.objects.filter(owner__username=request.user)
-        return Response({'authors': authors})
+                 Q(name__in=question.split())))
+        return objects.order_by('-id')
 
 
 class AuthorDetailView(MyDetailView):
@@ -272,8 +267,9 @@ class BookUpdateView(MyUpdateView):
 
 
 class BookListView(MyListView):
-    prefix = 'book'
     in_class = Book
+    template_name = 'book_all.html'
+    serializer_class = serializers.BookListSerializer
 
 
 class BookDetailView(MyDetailView):
@@ -305,8 +301,9 @@ class NovelUpdateView(MyUpdateView):
 
 
 class NovelListView(MyListView):
-    prefix = 'novel'
     in_class = Novel
+    template_name = 'novel_all.html'
+    serializer_class = serializers.NovelListSerializer
 
 
 class NovelDetailView(MyDetailView):

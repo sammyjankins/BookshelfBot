@@ -5,24 +5,36 @@
     <div class="card text-center">
         <div class="card-body">
             <h3 class="card-title">Все полки:</h3>
-            <div class="card-text">
 
-                {% regroup shelfs|dictsortreversed:"bookcase.title"  by id as shelf_list %}
+            {# pagination #}
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    {% if previous %}
+                        <a class="page-link text-dark text-decoration-none" href={{ previous }}>previous shelves</a>
+                    {% endif %}
+                </li>
+                <li class="page-item">
+                    {% if next %}
+                        <a class="page-link text-dark text-decoration-none" href={{ next }}>next shelves</a>
+                    {% endif %}
+                </li>
+            </ul>
+
+            <div class="card-text">
                 <div class="list-group text-center">
 
-                    {% for shelvs in shelf_list %}
-                        {% for shelf in shelvs.list %}
+                    {% for shelf in results %}
 
-                            <a class="list-group-item list-group-item-action"
-                               href="{% url 'shelves:shelf/' pk=shelf.id %}">
-                                    {{ shelf.bookcase }} - {{ shelf.title }}, ряд - {{ shelf.row }}  -
-                                {{ shelf.books.all|length }} книг
-                            </a>
-                        {% endfor %}
+                        <a class="list-group-item list-group-item-action"
+                           href="{% url 'shelves:shelf/' pk=shelf.id %}">
+                            {{ shelf.bookcase.title }} - {{ shelf.title }}, ряд - {{ shelf.row }} -
+                            {{ shelf.books|length }} книг
+                        </a>
                     {% endfor %}
 
+
                     <a class="list-group-item list-group-item-action list-group-item-light"
-                               href="{% url 'shelves:shelf/create/' %}">Add new shelf</a>
+                       href="{% url 'shelves:shelf/create/' %}">Add new shelf</a>
                 </div>
             </div>
         </div>

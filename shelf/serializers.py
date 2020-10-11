@@ -5,6 +5,38 @@ from rest_framework.validators import UniqueValidator
 from shelf.models import Shelf, BookCase, Author, Book, Novel, Profile
 
 
+# title serializers
+
+class NovelTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Novel
+        fields = ['title']
+
+
+class BookTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = ['title']
+
+
+class AuthorTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = ['name']
+
+
+class ShelfTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shelf
+        fields = ['title', 'row', ]
+
+
+class BookCaseTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookCase
+        fields = ['title']
+
+
 # novel serializers +++++++++++++++++++++++++++++++++++++++++++++
 
 class NovelFillSerializer(serializers.ModelSerializer):
@@ -27,6 +59,14 @@ class NovelUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Novel
         exclude = ['owner', ]
+
+
+class NovelListSerializer(serializers.ModelSerializer):
+    author = AuthorTitleSerializer(read_only=True)
+
+    class Meta:
+        model = Novel
+        fields = '__all__'
 
 
 # bookcase serializers ++++++++++++++++++++++++++++++++++++++
@@ -53,6 +93,16 @@ class BookUpdateSerializer(serializers.ModelSerializer):
         exclude = ['owner', ]
 
 
+class BookListSerializer(serializers.ModelSerializer):
+    author = AuthorTitleSerializer(read_only=True)
+    shelf = ShelfTitleSerializer(read_only=True)
+    bookcase = BookCaseTitleSerializer(read_only=True)
+
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+
 # author serializers ++++++++++++++++++++++++++++++++++++++
 
 
@@ -70,6 +120,14 @@ class AuthorUpdateSerializer(serializers.ModelSerializer):
         exclude = ['owner', ]
 
 
+class AuthorListSerializer(serializers.ModelSerializer):
+    books = BookTitleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Author
+        fields = ['id', 'name', 'date_of_birth', 'books']
+
+
 # bookcase serializers ++++++++++++++++++++++++++++++++++++++
 
 
@@ -85,6 +143,14 @@ class BookCaseUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookCase
         exclude = ['owner', ]
+
+
+class BookCaseListSerializer(serializers.ModelSerializer):
+    books = BookTitleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BookCase
+        fields = ['id', 'title', 'books']
 
 
 # shelf serializers ++++++++++++++++++++++++++++++++++++++
@@ -109,6 +175,17 @@ class ShelfUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shelf
         exclude = ['owner', ]
+
+
+class ShelfListSerializer(serializers.ModelSerializer):
+    author = AuthorTitleSerializer(read_only=True)
+    shelf = ShelfTitleSerializer(read_only=True)
+    bookcase = BookCaseTitleSerializer(read_only=True)
+    books = BookTitleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Shelf
+        fields = '__all__'
 
 
 # profile serializers

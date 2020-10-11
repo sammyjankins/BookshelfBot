@@ -2,23 +2,35 @@
 {% load rest_framework %}
 {% block content %}
 
-    <div class="card text-center">
+    <div class="card text-center mb-4">
         <div class="card-body">
             <h3 class="card-title">Все произведения:</h3>
+
+            {# pagination #}
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    {% if previous %}
+                        <a class="page-link text-dark text-decoration-none" href={{ previous }}>previous novels</a>
+                    {% endif %}
+                </li>
+                <li class="page-item">
+                    {% if next %}
+                        <a class="page-link text-dark text-decoration-none" href={{ next }}>next novels</a>
+                    {% endif %}
+                </li>
+            </ul>
+
             <div class="card-text">
 
-                {% regroup novels|dictsortreversed:"author.name"  by id as novel_list %}
                 <div class="list-group text-center">
 
-                    {% for novels in novel_list %}
-                        {% for novel in novels.list %}
+                        {% for novel in results %}
                             {% if novel.read %}<b>{% endif %}
                             <a class="list-group-item list-group-item-action"
                                href="{% url 'shelves:novel/' pk=novel.id %}">
                                     {{ novel.author.name }} - {{ novel.title }}, {{ novel.genre_tags }}
                             </a>{% if novel.read %}</b>{% endif %}
                         {% endfor %}
-                    {% endfor %}
 
                     <a class="list-group-item list-group-item-action list-group-item-light"
                                href="{% url 'shelves:novel/create/' %}">Add new novel</a>
