@@ -22,7 +22,7 @@ class BookTitleSerializer(serializers.ModelSerializer):
 class AuthorTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['name']
+        fields = ['id', 'name']
 
 
 class ShelfTitleSerializer(serializers.ModelSerializer):
@@ -90,13 +90,13 @@ class BookCreateSerializer(serializers.ModelSerializer):
 class BookUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        exclude = ['owner', ]
+        exclude = ['owner']
 
 
 class BookListSerializer(serializers.ModelSerializer):
-    author = AuthorTitleSerializer(read_only=True)
-    shelf = ShelfTitleSerializer(read_only=True)
-    bookcase = BookCaseTitleSerializer(read_only=True)
+    author = AuthorTitleSerializer()
+    shelf = ShelfTitleSerializer()
+    bookcase = BookCaseTitleSerializer()
 
     class Meta:
         model = Book

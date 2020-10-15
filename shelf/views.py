@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Model, Q
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, QueryDict
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404, ListAPIView
 from rest_framework.renderers import TemplateHTMLRenderer
@@ -57,39 +57,36 @@ class MyCreateView(generics.CreateAPIView):
         return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[serializer.data["id"]]))
 
 
-class MyUpdateView(generics.UpdateAPIView):
+class MyUpdateView(generics.RetrieveUpdateDestroyAPIView):
     renderer_classes = [TemplateHTMLRenderer]
-    update_serializer_class = Serializer
-    fill_serializer_class = BaseSerializer
     in_class = Model
     prefix = ''
-    fields = {}
+    format_kwarg = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.template_name = f'{self.prefix}_update.html'
 
+    def get_queryset(self):
+        return self.in_class.objects.filter(owner__username=self.request.user)
+
+    def dispatch(self, request, *args, **kwargs):
+        method = self.request.POST.get('_method', '').lower()
+        if method == 'put':
+            return self.put(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         obj = get_object_or_404(self.in_class, pk=kwargs['pk'])
-        serializer = self.fill_serializer_class(obj)
-        queries = {key: obj_class.objects.filter(owner=request.user) for key, obj_class in self.fields.items()}
+        serializer = self.serializer_class(obj)
         resp_dict = {'serializer': serializer, self.prefix: obj}
-        resp_dict.update(queries)
         return Response(resp_dict)
 
-    def post(self, request, *args, **kwargs):
-        obj = get_object_or_404(self.in_class, pk=kwargs['pk'])
-        serializer = self.update_serializer_class(obj, data=request.data)
-        if not serializer.is_valid():
-            queries = {key: obj_class.objects.filter(owner=request.user) for key, obj_class in self.fields.items()}
-            resp_dict = {'serializer': self.fill_serializer_class,
-                         'errors': serializer.errors}
-            resp_dict.update(queries)
-            return Response(resp_dict)
-        serializer.save()
-        if self.prefix == 'novel':
-            book_status(serializer.validated_data['book'])
-        return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[serializer.data["id"]]))
+    def put(self, request, *args, **kwargs):
+        put_dict = {k: v[0] if len(v) == 1 else v for k, v in QueryDict(request.body).lists()}
+        request.data = put_dict
+        super().put(request, *args, **kwargs)
+        return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[kwargs['pk']]))
 
 
 class MyListView(ListAPIView):
@@ -153,8 +150,7 @@ class BookCaseCreateView(MyCreateView):
 
 
 class BookCaseUpdateView(MyUpdateView):
-    update_serializer_class = serializers.BookCaseUpdateSerializer
-    fill_serializer_class = serializers.BookCaseUpdateSerializer
+    serializer_class = serializers.BookCaseUpdateSerializer
     prefix = 'bookcase'
     in_class = BookCase
 
@@ -185,11 +181,9 @@ class ShelfCreateView(MyCreateView):
 
 
 class ShelfUpdateView(MyUpdateView):
-    update_serializer_class = serializers.ShelfUpdateSerializer
-    fill_serializer_class = serializers.ShelfFillSerializer
+    serializer_class = serializers.ShelfUpdateSerializer
     prefix = 'shelf'
     in_class = Shelf
-    fields = {'bookcase': BookCase}
 
 
 class ShelfListView(MyListView):
@@ -217,8 +211,7 @@ class AuthorCreateView(MyCreateView):
 
 
 class AuthorUpdateView(MyUpdateView):
-    update_serializer_class = serializers.AuthorUpdateSerializer
-    fill_serializer_class = serializers.AuthorUpdateSerializer
+    serializer_class = serializers.AuthorUpdateSerializer
     prefix = 'author'
     in_class = Author
 
@@ -259,11 +252,9 @@ class BookCreateView(MyCreateView):
 
 
 class BookUpdateView(MyUpdateView):
-    update_serializer_class = serializers.BookUpdateSerializer
-    fill_serializer_class = serializers.BookFillSerializer
+    serializer_class = serializers.BookUpdateSerializer
     prefix = 'book'
     in_class = Book
-    fields = {'bookcase': BookCase, 'author': Author, 'shelf': Shelf}
 
 
 class BookListView(MyListView):
@@ -293,11 +284,9 @@ class NovelCreateView(MyCreateView):
 
 
 class NovelUpdateView(MyUpdateView):
-    update_serializer_class = serializers.NovelUpdateSerializer
-    fill_serializer_class = serializers.NovelFillSerializer
+    serializer_class = serializers.NovelUpdateSerializer
     prefix = 'novel'
     in_class = Novel
-    fields = {'book': Book, 'author': Author}
 
 
 class NovelListView(MyListView):

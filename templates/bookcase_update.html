@@ -5,10 +5,13 @@
     <div class="card px-4 py-4">
 
         <h3 class="card-title text-center">Edit bookcase info for {{ bookcase.title }}</h3>
+
         <div class="container">
             <form action="{% url 'shelves:bookcase/edit/' bookcase.id %}" method="POST">
                 {% csrf_token %}
                 {% render_form serializer template_pack='rest_framework/vertical' %}
+
+                <input type="hidden" name="_method" value="put">
                 <input class="btn btn-outline-dark" type="submit" value="Save">
             </form>
         </div>

@@ -20,33 +20,8 @@
             <form action="{% url 'shelves:book/edit/' book.id %}" method="POST">
                 {% csrf_token %}
                 {% render_form serializer template_pack='rest_framework/vertical' %}
-                <div class="form-group ">
-                    <label>
-                        Книжный шкаф
-                    </label>
-                    <select class="form-control mb-3" name="bookcase">
-                        {% for case in bookcase %}
-                            <option value="{{ case.id }}">{{ case.title }}</option>
-                        {% endfor %}
-                    </select>
-                    <label>
-                        Полка
-                    </label>
-                    <select class="form-control mb-3" name="shelf">
-                        {% for item in shelf %}
-                            <option value="{{ item.id }}">{{ item.bookcase.title }} - {{ item.title }},
-                            {{ item.row }} ряд</option>
-                        {% endfor %}
-                    </select>
-                    <label>
-                        Автор
-                    </label>
-                    <select class="form-control mb-3" name="author">
-                        {% for person in author %}
-                            <option value="{{ person.id }}">{{ person.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+
+                <input type="hidden" name="_method" value="put">
                 <input class="btn btn-outline-dark" type="submit" value="Save">
             </form>
         </div>
