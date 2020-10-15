@@ -8,7 +8,6 @@ from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import Serializer, BaseSerializer
-from rest_framework.views import APIView
 
 from shelf import serializers
 from shelf.models import BookCase, Shelf, Author, Book, Novel
@@ -57,15 +56,12 @@ class MyCreateView(generics.CreateAPIView):
         return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[serializer.data["id"]]))
 
 
-class MyUpdateView(generics.RetrieveUpdateDestroyAPIView):
+class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
     renderer_classes = [TemplateHTMLRenderer]
     in_class = Model
-    prefix = ''
+    name = ''
     format_kwarg = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.template_name = f'{self.prefix}_update.html'
+    template_name = ''
 
     def get_queryset(self):
         return self.in_class.objects.filter(owner__username=self.request.user)
@@ -74,19 +70,27 @@ class MyUpdateView(generics.RetrieveUpdateDestroyAPIView):
         method = self.request.POST.get('_method', '').lower()
         if method == 'put':
             return self.put(request, *args, **kwargs)
+        if method == 'delete':
+            return self.destroy(request, *args, **kwargs)
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         obj = get_object_or_404(self.in_class, pk=kwargs['pk'])
         serializer = self.serializer_class(obj)
-        resp_dict = {'serializer': serializer, self.prefix: obj}
+        resp_dict = {'serializer': serializer}
+        resp_dict.update({self.name: obj} if 'delete' not in self.template_name else {'obj': obj, 'name': self.name})
+        print(resp_dict)
         return Response(resp_dict)
 
     def put(self, request, *args, **kwargs):
         put_dict = {k: v[0] if len(v) == 1 else v for k, v in QueryDict(request.body).lists()}
         request.data = put_dict
         super().put(request, *args, **kwargs)
-        return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[kwargs['pk']]))
+        return HttpResponseRedirect(reverse(f'shelves:{self.name}/', args=[kwargs['pk']]))
+
+    def destroy(self, request, *args, **kwargs):
+        super().destroy(request, *args, **kwargs)
+        return HttpResponseRedirect(reverse(f'shelves:{self.name}/all/'))
 
 
 class MyListView(ListAPIView):
@@ -110,36 +114,6 @@ class MyListView(ListAPIView):
     #     return resp
 
 
-class MyDetailView(generics.RetrieveAPIView):
-    renderer_classes = [TemplateHTMLRenderer]
-    prefix = ''
-    in_class = Model
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.template_name = f'{self.prefix}_detail.html'
-
-    def get(self, request, *args, **kwargs):
-        obj = get_object_or_404(self.in_class, pk=kwargs['pk'])
-        return Response({f'{self.prefix}': obj})
-
-
-class MyDeleteView(APIView):
-    renderer_classes = [TemplateHTMLRenderer]
-    prefix = ''
-    in_class = Model
-    template_name = 'delete_template.html'
-
-    def get(self, request, *args, **kwargs):
-        obj = get_object_or_404(self.in_class, pk=kwargs['pk'])
-        return Response({'obj': obj, 'prefix': self.prefix})
-
-    def post(self, *args, **kwargs):
-        obj = self.in_class.objects.get(pk=kwargs['pk'])
-        obj.delete()
-        return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/all/'))
-
-
 # BookCase views ===================================
 
 
@@ -149,10 +123,11 @@ class BookCaseCreateView(MyCreateView):
     prefix = 'bookcase'
 
 
-class BookCaseUpdateView(MyUpdateView):
+class BookCaseUpdateView(MyUpdateDetailDeleteView):
     serializer_class = serializers.BookCaseUpdateSerializer
-    prefix = 'bookcase'
+    name = 'bookcase'
     in_class = BookCase
+    template_name = 'bookcase_update.html'
 
 
 class BookCaseListView(MyListView):
@@ -161,14 +136,18 @@ class BookCaseListView(MyListView):
     serializer_class = serializers.BookCaseListSerializer
 
 
-class BookCaseDetailView(MyDetailView):
-    prefix = 'bookcase'
+class BookCaseDetailView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.BookCaseUpdateSerializer
+    name = 'bookcase'
     in_class = BookCase
+    template_name = 'bookcase_detail.html'
 
 
-class BookCaseDeleteView(MyDeleteView):
-    prefix = 'bookcase'
+class BookCaseDeleteView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.BookCaseUpdateSerializer
+    name = 'bookcase'
     in_class = BookCase
+    template_name = 'delete_template.html'
 
 
 # Shelf views ===================================
@@ -180,10 +159,11 @@ class ShelfCreateView(MyCreateView):
     fields = {'bookcase': BookCase}
 
 
-class ShelfUpdateView(MyUpdateView):
+class ShelfUpdateView(MyUpdateDetailDeleteView):
     serializer_class = serializers.ShelfUpdateSerializer
-    prefix = 'shelf'
+    name = 'shelf'
     in_class = Shelf
+    template_name = 'shelf_update.html'
 
 
 class ShelfListView(MyListView):
@@ -192,14 +172,18 @@ class ShelfListView(MyListView):
     serializer_class = serializers.ShelfListSerializer
 
 
-class ShelfDetailView(MyDetailView):
-    prefix = 'shelf'
+class ShelfDetailView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.ShelfUpdateSerializer
+    name = 'shelf'
     in_class = Shelf
+    template_name = 'shelf_detail.html'
 
 
-class ShelfDeleteView(MyDeleteView):
-    prefix = 'shelf'
+class ShelfDeleteView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.ShelfUpdateSerializer
+    name = 'shelf'
     in_class = Shelf
+    template_name = 'delete_template.html'
 
 
 # Author views ===================================
@@ -210,10 +194,11 @@ class AuthorCreateView(MyCreateView):
     prefix = 'author'
 
 
-class AuthorUpdateView(MyUpdateView):
+class AuthorUpdateView(MyUpdateDetailDeleteView):
     serializer_class = serializers.AuthorUpdateSerializer
-    prefix = 'author'
+    name = 'author'
     in_class = Author
+    template_name = 'author_update.html'
 
 
 class AuthorListView(ListAPIView):
@@ -231,14 +216,18 @@ class AuthorListView(ListAPIView):
         return objects.order_by('-id')
 
 
-class AuthorDetailView(MyDetailView):
-    prefix = 'author'
+class AuthorDetailView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.AuthorUpdateSerializer
+    name = 'author'
     in_class = Author
+    template_name = 'author_detail.html'
 
 
-class AuthorDeleteView(MyDeleteView):
-    prefix = 'author'
+class AuthorDeleteView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.AuthorUpdateSerializer
+    name = 'author'
     in_class = Author
+    template_name = 'delete_template.html'
 
 
 # Book views ===================================
@@ -251,10 +240,18 @@ class BookCreateView(MyCreateView):
     fields = {'bookcase': BookCase, 'author': Author, 'shelf': Shelf}
 
 
-class BookUpdateView(MyUpdateView):
+class BookUpdateView(MyUpdateDetailDeleteView):
     serializer_class = serializers.BookUpdateSerializer
-    prefix = 'book'
+    name = 'book'
     in_class = Book
+    template_name = 'book_update.html'
+
+
+class BookDetailView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.BookUpdateSerializer
+    name = 'book'
+    in_class = Book
+    template_name = 'book_detail.html'
 
 
 class BookListView(MyListView):
@@ -263,14 +260,11 @@ class BookListView(MyListView):
     serializer_class = serializers.BookListSerializer
 
 
-class BookDetailView(MyDetailView):
-    prefix = 'book'
+class BookDeleteView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.BookUpdateSerializer
+    name = 'book'
     in_class = Book
-
-
-class BookDeleteView(MyDeleteView):
-    prefix = 'book'
-    in_class = Book
+    template_name = 'delete_template.html'
 
 
 # Novel views ===================================
@@ -283,10 +277,11 @@ class NovelCreateView(MyCreateView):
     fields = {'book': Book, 'author': Author}
 
 
-class NovelUpdateView(MyUpdateView):
+class NovelUpdateView(MyUpdateDetailDeleteView):
     serializer_class = serializers.NovelUpdateSerializer
-    prefix = 'novel'
+    name = 'novel'
     in_class = Novel
+    template_name = 'novel_update.html'
 
 
 class NovelListView(MyListView):
@@ -295,14 +290,18 @@ class NovelListView(MyListView):
     serializer_class = serializers.NovelListSerializer
 
 
-class NovelDetailView(MyDetailView):
-    prefix = 'novel'
+class NovelDetailView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.NovelUpdateSerializer
+    name = 'novel'
     in_class = Novel
+    template_name = 'novel_detail.html'
 
 
-class NovelDeleteView(MyDeleteView):
-    prefix = 'novel'
+class NovelDeleteView(MyUpdateDetailDeleteView):
+    serializer_class = serializers.NovelUpdateSerializer
+    name = 'novel'
     in_class = Novel
+    template_name = 'delete_template.html'
 
 
 # user auth stuff
