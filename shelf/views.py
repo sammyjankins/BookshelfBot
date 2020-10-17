@@ -1,19 +1,23 @@
+from pprint import pprint
+
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Model, Q
 from django.http import HttpResponseRedirect, QueryDict
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404, ListAPIView
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.serializers import Serializer, BaseSerializer
+from rest_framework.serializers import Serializer
 
 from shelf import serializers
 from shelf.models import BookCase, Shelf, Author, Book, Novel
 
 
-def book_status(book):
+def book_status(book_id):
+    book = Book.objects.get(pk=book_id)
     if len(book.novels.all()) == len(book.novels.filter(read=True)):
         book.read = True
         book.save()
@@ -27,33 +31,26 @@ def book_status(book):
 
 class MyCreateView(generics.CreateAPIView):
     renderer_classes = [TemplateHTMLRenderer]
-    create_serializer_class = Serializer
-    fill_serializer_class = BaseSerializer
-    prefix = ''
-    fields = {}
+    serializer_class = Serializer
+    name = ''
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.template_name = f'{self.prefix}_create.html'
-
-    def get(self, request):
-        queries = {key: obj_class.objects.filter(owner=request.user) for key, obj_class in self.fields.items()}
-        resp_dict = {'serializer': self.fill_serializer_class}
-        resp_dict.update(queries)
+    def get(self, request, errors=None):
+        resp_dict = {'serializer': self.serializer_class}
+        if errors:
+            resp_dict['errors'] = []
+            for error in errors:
+                resp_dict['errors'].append([error, errors[error][0]['message']])
         return Response(resp_dict)
 
     def post(self, request, *args, **kwargs):
-        serializer = self.create_serializer_class(data=request.data, context={'request': request})
-        if not serializer.is_valid():
-            queries = {key: obj_class.objects.filter(owner=request.user) for key, obj_class in self.fields.items()}
-            resp_dict = {'serializer': self.fill_serializer_class,
-                         'errors': serializer.errors}
-            resp_dict.update(queries)
-            return Response(resp_dict)
-        serializer.save(owner=request.user)
-        if self.prefix == 'novel':
-            book_status(serializer.validated_data['book'])
-        return HttpResponseRedirect(reverse(f'shelves:{self.prefix}/', args=[serializer.data["id"]]))
+        try:
+            resp = super().create(request, *args, **kwargs)
+            if self.name == 'novel':
+                book_status(resp.data['book'])
+            return HttpResponseRedirect(reverse(f'shelves:{self.name}/', args=[resp.data['id']]))
+        except ValidationError as e:
+            errors = e.get_full_details()
+            return self.get(request, errors=errors)
 
 
 class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
@@ -79,13 +76,15 @@ class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.serializer_class(obj)
         resp_dict = {'serializer': serializer}
         resp_dict.update({self.name: obj} if 'delete' not in self.template_name else {'obj': obj, 'name': self.name})
-        print(resp_dict)
         return Response(resp_dict)
 
     def put(self, request, *args, **kwargs):
         put_dict = {k: v[0] if len(v) == 1 else v for k, v in QueryDict(request.body).lists()}
+        put_dict['read'] = str('read' in put_dict).lower()
         request.data = put_dict
-        super().put(request, *args, **kwargs)
+        resp = super().put(request, *args, **kwargs)
+        if self.name == 'novel':
+            book_status(resp.data['book'])
         return HttpResponseRedirect(reverse(f'shelves:{self.name}/', args=[kwargs['pk']]))
 
     def destroy(self, request, *args, **kwargs):
@@ -118,9 +117,9 @@ class MyListView(ListAPIView):
 
 
 class BookCaseCreateView(MyCreateView):
-    create_serializer_class = serializers.BookCaseCreateSerializer
-    fill_serializer_class = serializers.BookCaseCreateSerializer
-    prefix = 'bookcase'
+    serializer_class = serializers.BookCaseCreateSerializer
+    name = 'bookcase'
+    template_name = 'bookcase_create.html'
 
 
 class BookCaseUpdateView(MyUpdateDetailDeleteView):
@@ -152,11 +151,11 @@ class BookCaseDeleteView(MyUpdateDetailDeleteView):
 
 # Shelf views ===================================
 
+
 class ShelfCreateView(MyCreateView):
-    create_serializer_class = serializers.ShelfCreateSerializer
-    fill_serializer_class = serializers.ShelfFillSerializer
-    prefix = 'shelf'
-    fields = {'bookcase': BookCase}
+    serializer_class = serializers.ShelfCreateSerializer
+    name = 'shelf'
+    template_name = 'shelf_create.html'
 
 
 class ShelfUpdateView(MyUpdateDetailDeleteView):
@@ -188,10 +187,11 @@ class ShelfDeleteView(MyUpdateDetailDeleteView):
 
 # Author views ===================================
 
+
 class AuthorCreateView(MyCreateView):
-    create_serializer_class = serializers.AuthorCreateSerializer
-    fill_serializer_class = serializers.AuthorCreateSerializer
-    prefix = 'author'
+    serializer_class = serializers.AuthorCreateSerializer
+    name = 'author'
+    template_name = 'author_create.html'
 
 
 class AuthorUpdateView(MyUpdateDetailDeleteView):
@@ -234,10 +234,9 @@ class AuthorDeleteView(MyUpdateDetailDeleteView):
 
 
 class BookCreateView(MyCreateView):
-    create_serializer_class = serializers.BookCreateSerializer
-    fill_serializer_class = serializers.BookFillSerializer
-    prefix = 'book'
-    fields = {'bookcase': BookCase, 'author': Author, 'shelf': Shelf}
+    serializer_class = serializers.BookCreateSerializer
+    name = 'book'
+    template_name = 'book_create.html'
 
 
 class BookUpdateView(MyUpdateDetailDeleteView):
@@ -271,10 +270,9 @@ class BookDeleteView(MyUpdateDetailDeleteView):
 
 
 class NovelCreateView(MyCreateView):
-    create_serializer_class = serializers.NovelCreateSerializer
-    fill_serializer_class = serializers.NovelFillSerializer
-    prefix = 'novel'
-    fields = {'book': Book, 'author': Author}
+    serializer_class = serializers.NovelCreateSerializer
+    name = 'novel'
+    template_name = 'novel_create.html'
 
 
 class NovelUpdateView(MyUpdateDetailDeleteView):

@@ -14,7 +14,7 @@ class Profile(models.Model):
 
 
 class BookCase(models.Model):
-    title = models.CharField(verbose_name='Название', max_length=100, default='')
+    title = models.CharField(verbose_name='Название', max_length=100)
     # user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
 
     # trying to auth stuff
@@ -80,10 +80,10 @@ class Book(models.Model):
 
 
 class Novel(models.Model):
-    title = models.CharField(max_length=100, blank=True, default='')
-    year_of_creation = models.CharField(max_length=100, blank=True, default='')
-    original_language = models.CharField(max_length=100, blank=True, default='')
-    genre_tags = models.CharField(max_length=100, blank=True, default='')
+    title = models.CharField(max_length=100, blank=False)
+    year_of_creation = models.CharField(max_length=100, blank=False)
+    original_language = models.CharField(max_length=100, blank=False)
+    genre_tags = models.CharField(max_length=100, blank=False)
     read = models.BooleanField(default=False)
 
     author = models.ForeignKey(Author, verbose_name='Автор', on_delete=models.CASCADE,

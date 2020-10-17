@@ -10,19 +10,19 @@ from shelf.models import Shelf, BookCase, Author, Book, Novel, Profile
 class NovelTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Novel
-        fields = ['title']
+        fields = ['title', ]
 
 
 class BookTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ['title']
+        fields = ['title', ]
 
 
 class AuthorTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['id', 'name']
+        fields = ['id', 'name', ]
 
 
 class ShelfTitleSerializer(serializers.ModelSerializer):
@@ -34,17 +34,10 @@ class ShelfTitleSerializer(serializers.ModelSerializer):
 class BookCaseTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookCase
-        fields = ['title']
+        fields = ['title', ]
 
 
 # novel serializers +++++++++++++++++++++++++++++++++++++++++++++
-
-class NovelFillSerializer(serializers.ModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = Novel
-        exclude = ('book', 'author',)
 
 
 class NovelCreateSerializer(serializers.ModelSerializer):
@@ -71,13 +64,6 @@ class NovelListSerializer(serializers.ModelSerializer):
 
 # bookcase serializers ++++++++++++++++++++++++++++++++++++++
 
-class BookFillSerializer(serializers.ModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = Book
-        exclude = ('bookcase', 'author', 'shelf')
-
 
 class BookCreateSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -90,7 +76,7 @@ class BookCreateSerializer(serializers.ModelSerializer):
 class BookUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        exclude = ['owner']
+        exclude = ['owner', ]
 
 
 class BookListSerializer(serializers.ModelSerializer):
@@ -125,7 +111,7 @@ class AuthorListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Author
-        fields = ['id', 'name', 'date_of_birth', 'books']
+        fields = ['id', 'name', 'date_of_birth', 'books', ]
 
 
 # bookcase serializers ++++++++++++++++++++++++++++++++++++++
@@ -150,18 +136,10 @@ class BookCaseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookCase
-        fields = ['id', 'title', 'books']
+        fields = ['id', 'title', 'books', ]
 
 
 # shelf serializers ++++++++++++++++++++++++++++++++++++++
-
-class ShelfFillSerializer(serializers.ModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = Shelf
-        exclude = ('bookcase',)
-
 
 class ShelfCreateSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -178,8 +156,6 @@ class ShelfUpdateSerializer(serializers.ModelSerializer):
 
 
 class ShelfListSerializer(serializers.ModelSerializer):
-    author = AuthorTitleSerializer(read_only=True)
-    shelf = ShelfTitleSerializer(read_only=True)
     bookcase = BookCaseTitleSerializer(read_only=True)
     books = BookTitleSerializer(many=True, read_only=True)
 
@@ -193,7 +169,7 @@ class ShelfListSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
+        fields = ['id', 'username', 'password', ]
 
 
 class ProfileSerializer(serializers.ModelSerializer):
