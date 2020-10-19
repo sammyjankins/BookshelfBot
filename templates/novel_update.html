@@ -10,7 +10,54 @@
         <div class="container">
             <form action="{% url 'shelves:novel/edit/' novel.id %}" method="POST">
                 {% csrf_token %}
-                {% render_form serializer template_pack='rest_framework/vertical' %}
+
+                <div class="form-group ">
+
+                    <label for="title_input">Title</label>
+                    <input id="title_input" name="title" class="form-control mb-3" type="text"
+                           value="{{ novel.title }}">
+
+                    <label for="year_input">Year of creation</label>
+                    <input id="year_input" name="year_of_creation" class="form-control mb-3" type="text"
+                           value="{{ novel.year_of_creation }}">
+
+                    <label for="language_input">Original language</label>
+                    <input id="language_input" name="original_language" class="form-control mb-3" type="text"
+                           value="{{ novel.original_language }}">
+
+                    <label for="genre_input">Genre tags</label>
+                    <input id="genre_input" name="genre_tags" class="form-control mb-3" type="text"
+                           value="{{ novel.genre_tags }}">
+
+                    <label>
+                        {% if novel.read %}
+                            <input type="checkbox" name="read" value="{{ 1 }}" class="mb-3" checked>
+                        {% else %}
+                            <input type="checkbox" name="read" value="{{ 1 }}" class="mb-3">
+                        {% endif %}
+                        Read
+                    </label><br>
+
+
+                    <label for="author_input">Author</label>
+                    <select id="author_input" class="form-control mb-3" name="author">
+                        <option value="{{ novel.author.id }}">{{ novel.author.name }}</option>
+                        {% for item in author %}
+                            <option value="{{ item.id }}">{{ item.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="book_input">Book</label>
+                    <select id="book_input" class="form-control mb-3" name="book">
+                        <option value="{{ novel.book.id }}">{{ novel.book.title }}</option>
+                        {% for item in book %}
+                            <option value="{{ item.id }}">{{ item.title }}</option>
+                        {% endfor %}
+                    </select>
+
+
+                </div>
+
 
                 <input type="hidden" name="_method" value="put">
                 <input class="btn btn-outline-dark" type="submit" value="Save">

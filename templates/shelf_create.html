@@ -8,7 +8,7 @@
 
         {% if errors %}
             <div class="alert alert-danger">
-                <h4>Ошибка:</h4>
+                <h4>Error:</h4>
                 {% for error in errors %}
                     <p>{{ error|first }} - {{ error|last }}</p>
                 {% endfor %}
@@ -18,7 +18,27 @@
         <div class="container">
             <form action="{% url 'shelves:shelf/create/' %}" method="POST">
                 {% csrf_token %}
-                {% render_form serializer template_pack='rest_framework/vertical' %}
+
+                <div class="form-group ">
+                    <label for="title_input">Title</label>
+                    <input id="title_input" name="title" class="form-control mb-2" type="text" value=""
+                           placeholder="Title">
+
+                    <label for="row_select">Row</label>
+                    <select id="row_select" class="form-control mb-2" name="row">
+                        {% for value in serializer.fields.row.choices %}
+                            <option value="{{ value }}">{{ value }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="bookcase_input">Bookcase</label>
+                    <select id="bookcase_input" class="form-control" name="bookcase">
+                        {% for case in bookcase %}
+                            <option value="{{ case.id }}">{{ case.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <input class="btn btn-outline-dark" type="submit" value="Save">
             </form>
         </div>

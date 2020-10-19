@@ -33,13 +33,16 @@ class MyCreateView(generics.CreateAPIView):
     renderer_classes = [TemplateHTMLRenderer]
     serializer_class = Serializer
     name = ''
+    fields = {}
 
     def get(self, request, errors=None):
         resp_dict = {'serializer': self.serializer_class}
+        queries = {key: self.fields[key].objects.filter(owner__username=request.user) for key in self.fields}
         if errors:
             resp_dict['errors'] = []
             for error in errors:
                 resp_dict['errors'].append([error, errors[error][0]['message']])
+        resp_dict.update(queries)
         return Response(resp_dict)
 
     def post(self, request, *args, **kwargs):
@@ -57,8 +60,9 @@ class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
     renderer_classes = [TemplateHTMLRenderer]
     in_class = Model
     name = ''
-    format_kwarg = None
     template_name = ''
+    fields = {}
+    format_kwarg = None
 
     def get_queryset(self):
         return self.in_class.objects.filter(owner__username=self.request.user)
@@ -75,7 +79,9 @@ class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
         obj = get_object_or_404(self.in_class, pk=kwargs['pk'])
         serializer = self.serializer_class(obj)
         resp_dict = {'serializer': serializer}
+        queries = {key: self.fields[key].objects.filter(owner__username=request.user) for key in self.fields}
         resp_dict.update({self.name: obj} if 'delete' not in self.template_name else {'obj': obj, 'name': self.name})
+        resp_dict.update(queries)
         return Response(resp_dict)
 
     def put(self, request, *args, **kwargs):
@@ -106,11 +112,6 @@ class MyListView(ListAPIView):
                  Q(title__icontains=question.title()) |
                  Q(title__in=question.title().split())))
         return objects.order_by('-id')
-
-    # def get(self, request, *args, **kwargs):
-    #     resp = super(MyListView, self).get(request, *args, **kwargs)
-    #     print(resp.data)
-    #     return resp
 
 
 # BookCase views ===================================
@@ -156,6 +157,7 @@ class ShelfCreateView(MyCreateView):
     serializer_class = serializers.ShelfCreateSerializer
     name = 'shelf'
     template_name = 'shelf_create.html'
+    fields = {'bookcase': BookCase, }
 
 
 class ShelfUpdateView(MyUpdateDetailDeleteView):
@@ -163,6 +165,7 @@ class ShelfUpdateView(MyUpdateDetailDeleteView):
     name = 'shelf'
     in_class = Shelf
     template_name = 'shelf_update.html'
+    fields = {'bookcase': BookCase, }
 
 
 class ShelfListView(MyListView):
@@ -237,6 +240,7 @@ class BookCreateView(MyCreateView):
     serializer_class = serializers.BookCreateSerializer
     name = 'book'
     template_name = 'book_create.html'
+    fields = {'bookcase': BookCase, 'shelf': Shelf, 'author': Author, }
 
 
 class BookUpdateView(MyUpdateDetailDeleteView):
@@ -244,6 +248,7 @@ class BookUpdateView(MyUpdateDetailDeleteView):
     name = 'book'
     in_class = Book
     template_name = 'book_update.html'
+    fields = {'bookcase': BookCase, 'shelf': Shelf, 'author': Author, }
 
 
 class BookDetailView(MyUpdateDetailDeleteView):
@@ -273,6 +278,7 @@ class NovelCreateView(MyCreateView):
     serializer_class = serializers.NovelCreateSerializer
     name = 'novel'
     template_name = 'novel_create.html'
+    fields = {'author': Author, 'book': Book, }
 
 
 class NovelUpdateView(MyUpdateDetailDeleteView):
@@ -280,6 +286,7 @@ class NovelUpdateView(MyUpdateDetailDeleteView):
     name = 'novel'
     in_class = Novel
     template_name = 'novel_update.html'
+    fields = {'author': Author, 'book': Book, }
 
 
 class NovelListView(MyListView):

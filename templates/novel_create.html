@@ -18,7 +18,44 @@
         <div class="container">
             <form action="{% url 'shelves:novel/create/' %}" method="POST">
                 {% csrf_token %}
-                {% render_form serializer template_pack='rest_framework/vertical' %}
+
+                <div class="form-group ">
+
+                    <label for="title_input">Title</label>
+                    <input id="title_input" name="title" class="form-control mb-3" type="text" value="">
+
+                    <label for="year_input">Year of creation</label>
+                    <input id="year_input" name="year_of_creation" class="form-control mb-3" type="text" value="">
+
+                    <label for="language_input">Original language</label>
+                    <input id="language_input" name="original_language" class="form-control mb-3" type="text" value="">
+
+                    <label for="genre_input">Genre tags</label>
+                    <input id="genre_input" name="genre_tags" class="form-control mb-3" type="text" value="">
+
+                    <label>
+                        <input type="checkbox" name="read" value="{{ 1 }}" class="mb-3">
+                        Read
+                    </label><br>
+
+
+                    <label for="author_input">Author</label>
+                    <select id="author_input" class="form-control mb-3" name="author">
+                        {% for item in author %}
+                            <option value="{{ item.id }}">{{ item.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="book_input">Book</label>
+                    <select id="book_input" class="form-control mb-3" name="book">
+                        {% for item in book %}
+                            <option value="{{ item.id }}">{{ item.title }}</option>
+                        {% endfor %}
+                    </select>
+
+
+                </div>
+
                 <input class="btn btn-outline-dark" type="submit" value="Save">
             </form>
         </div>

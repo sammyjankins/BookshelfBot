@@ -8,7 +8,28 @@
         <div class="container">
             <form action="{% url 'shelves:shelf/edit/' shelf.id %}" method="POST">
                 {% csrf_token %}
-                {% render_form serializer template_pack='rest_framework/vertical' %}
+
+                <div class="form-group ">
+                    <label for="title_input">Title</label>
+                    <input id="title_input" name="title" class="form-control mb-2" type="text" value="{{ shelf.title }}"
+                           placeholder="Title">
+
+                    <label for="row_select">Row</label>
+                    <select id="row_select" class="form-control mb-2" name="row">
+                        <option value="{{ shelf.row }}">{{ shelf.row }}</option>
+                        {% for value in serializer.fields.row.choices %}
+                            <option value="{{ value }}">{{ value }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="bookcase_input">Bookcase</label>
+                    <select id="bookcase_input" class="form-control" name="bookcase">
+                        <option value="{{ shelf.bookcase.id }}">{{ shelf.bookcase }}</option>
+                        {% for case in bookcase %}
+                            <option value="{{ case.id }}">{{ case.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
                 <input type="hidden" name="_method" value="put">
                 <input class="btn btn-outline-dark" type="submit" value="Save">

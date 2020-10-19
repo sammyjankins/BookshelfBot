@@ -65,12 +65,15 @@ class Book(models.Model):
     type_of_cover = models.CharField(verbose_name='Тип обложки', max_length=15)
     read = models.BooleanField(default=False)
 
+    parse_isbn = models.CharField(verbose_name='ISBNp', max_length=100, default='', null=True)
+
     bookcase = models.ForeignKey(BookCase, verbose_name='Книжный шкаф', on_delete=models.CASCADE,
                                  related_name='books')
     shelf = models.ForeignKey(Shelf, verbose_name='Полка', on_delete=models.CASCADE,
                               related_name='books')
     author = models.ForeignKey(Author, verbose_name='Автор', on_delete=models.CASCADE,
                                related_name='books')
+
 
     # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='books', on_delete=models.CASCADE)
