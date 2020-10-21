@@ -1,8 +1,9 @@
 # from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.db import models
-
-# User = get_user_model()
+from io import BytesIO
+from PIL import Image
+from django.core.files import File
 
 
 class Profile(models.Model):
@@ -58,11 +59,11 @@ class Author(models.Model):
 
 class Book(models.Model):
     title = models.CharField(verbose_name='Название', max_length=150)
-    pages = models.IntegerField(verbose_name='Объем в страницах')
-    year_of_publication = models.CharField(verbose_name='Год издания', max_length=10)
-    language = models.CharField(verbose_name='Язык', max_length=50)
+    pages = models.IntegerField(verbose_name='Объем в страницах', default='', blank=True)
+    year_of_publication = models.CharField(verbose_name='Год издания', max_length=10, default='', blank=True)
+    language = models.CharField(verbose_name='Язык', max_length=50, default='', blank=True)
     ISBN = models.CharField(verbose_name='ISBN', max_length=100)
-    type_of_cover = models.CharField(verbose_name='Тип обложки', max_length=15)
+    type_of_cover = models.CharField(verbose_name='Тип обложки', max_length=25, default='', blank=True)
     read = models.BooleanField(default=False)
 
     parse_isbn = models.CharField(verbose_name='ISBNp', max_length=100, default='', null=True)
@@ -73,7 +74,6 @@ class Book(models.Model):
                               related_name='books')
     author = models.ForeignKey(Author, verbose_name='Автор', on_delete=models.CASCADE,
                                related_name='books')
-
 
     # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='books', on_delete=models.CASCADE)

@@ -7,6 +7,7 @@ from telegram import Bot, Update
 from telegram.ext import CallbackContext, Filters, MessageHandler, Updater
 from telegram.utils.request import Request
 
+import BookshelfBot.secrets
 import shelf.management.commands.secrets
 from shelf.management.commands.utils import num_to_words
 from shelf.management.commands.voice_processing import recognize, synthesize
@@ -93,7 +94,7 @@ class Command(BaseCommand):
         )
         bot = Bot(
             request=request,
-            token=shelf.management.commands.secrets.TOKEN,
+            token=BookshelfBot.secrets.TOKEN,
             # base_url=settings.PROXY_URL,
         )
 

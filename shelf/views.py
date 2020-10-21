@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Model, Q
@@ -14,6 +12,7 @@ from rest_framework.serializers import Serializer
 
 from shelf import serializers
 from shelf.models import BookCase, Shelf, Author, Book, Novel
+from shelf.utils import check_isbn_info, get_author_of_create, scan_isbn
 
 
 def book_status(book_id):
@@ -45,7 +44,38 @@ class MyCreateView(generics.CreateAPIView):
         resp_dict.update(queries)
         return Response(resp_dict)
 
+    def book_from_isbn(self, request):
+        print(request.FILES)
+        isbn = request.data['parse_isbn'] or scan_isbn(request.data['barcode'])
+        book_data = check_isbn_info(isbn)
+        if book_data is not None:
+            author_name = book_data['author']
+            author_object = get_author_of_create(author_name=author_name, user=request.user)
+            bookcase = BookCase.objects.filter(owner__username=request.user).last()
+            shelf = Shelf.objects.filter(owner__username=request.user).last()
+            if not bookcase or not shelf:
+                messages.warning(request,
+                                 f'There are no bookcases or shelves in your profile. Please follow links'
+                                 f' in navbar to create bookcase so that you can fill it with books :)')
+                return self.get(request)
+            book_data.update({'author': author_object,
+                              'bookcase': bookcase,
+                              'shelf': shelf,
+                              'owner': request.user, })
+            book = Book(**book_data)
+            book.save()
+            messages.info(request, 'The book profile was created successfully! You were redirected to the edit page to '
+                                   'correct information about book and it\'s location in bookshelf if you want.')
+            return HttpResponseRedirect(reverse(f'shelves:book/edit/', args=[book.id]))
+        else:
+            messages.warning(request,
+                             f'No data found for {f"the number {isbn}" if isbn else "this picture"}. '
+                             f'Please fill out the form manually.')
+            return self.get(request)
+
     def post(self, request, *args, **kwargs):
+        if any(['parse_isbn' in request.data, 'barcode' in request.data]):
+            return self.book_from_isbn(request)
         try:
             resp = super().create(request, *args, **kwargs)
             if self.name == 'novel':
@@ -95,6 +125,7 @@ class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
+        messages.info(request, f'The {self.name} was successfully deleted!')
         return HttpResponseRedirect(reverse(f'shelves:{self.name}/all/'))
 
 
