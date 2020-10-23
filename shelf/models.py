@@ -1,14 +1,13 @@
 # from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.db import models
-from io import BytesIO
-from PIL import Image
-from django.core.files import File
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
     tele_id = models.CharField(max_length=15)
+    last_book = models.ForeignKey('Book', verbose_name='Last book', on_delete=models.SET_NULL, null=True)
+    last_shelf = models.ForeignKey('Shelf', verbose_name='Last shelf', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f'{self.user.username} profile'

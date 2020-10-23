@@ -4,7 +4,6 @@ import os
 import requests
 
 import BookshelfBot.secrets
-import shelf.management.commands.secrets
 
 
 def recognize(file_path):

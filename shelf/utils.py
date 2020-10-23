@@ -3,7 +3,7 @@ from PIL import Image
 from bs4 import BeautifulSoup
 from pyzbar.pyzbar import decode as p_decode
 
-from shelf.models import Author
+from shelf.models import Author, BookCase, Shelf, Book
 
 URL = 'https://biblio.zone'
 
@@ -59,3 +59,31 @@ def scan_isbn(img_file):
     except Exception as e:
         print(e)
         return None
+
+
+def create_book(isbn, user, from_tg=False):
+    book_data = check_isbn_info(isbn)
+    if book_data is not None:
+        author_name = book_data['author']
+        author_object = get_author_of_create(author_name=author_name, user=user)
+        bookcase = BookCase.objects.filter(owner__username=user).last()
+        shelf = Shelf.objects.filter(owner__username=user).last()
+        if not bookcase or not shelf:
+            return None
+        book_data.update({'author': author_object,
+                          'bookcase': bookcase,
+                          'shelf': shelf,
+                          'owner': user, })
+        book = Book(**book_data)
+        book.save()
+        return book
+    else:
+        return
+
+
+class BookDataError(Exception):
+    pass
+
+
+class NoFurnitureError(Exception):
+    pass
