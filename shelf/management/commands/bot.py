@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 from telegram import Bot, Update, ParseMode
@@ -14,9 +17,17 @@ import BookshelfBot.secrets
 from shelf.management.commands.utils import num_to_words
 from shelf.management.commands.voice_processing import recognize, synthesize
 from shelf.models import Profile, Book
+from shelf.utils import scan_isbn, create_book, BookDataError, NoFurnitureError
 
 COMMANDS = ['добавить книгу', 'добавить шкаф', ]
+DIALOG_STATES = {
+    0: 'initial',
+    1: 'search',
+    2: 'add',
+}
 
+
+# run this guy using $ docker-compose run web python3 manage.py shell
 
 def log_errors(f):
     def inner(*args, **kwargs):
@@ -35,21 +46,34 @@ def set_last_book(user, book):
     user.save()
 
 
+def get_last_book(chat_id):
+    profile = Profile.objects.get(tele_id=chat_id)
+    book = profile.last_book
+    return book.id
+
+
+def set_dialog_state(chat_id, state):
+    profile = Profile.objects.get(tele_id=chat_id)
+    profile.state = state
+    profile.save()
+
+
+def get_dialog_state(chat_id):
+    profile = Profile.objects.get(tele_id=chat_id)
+    return profile.state
+
+
 @log_errors
 def answer(update: Update, context: CallbackContext):
     chat_id = update.message.chat_id
     reply_text = 'error'
 
-    try:
-        print(update.callback_query.data)
-        if update.callback_query.data == CB_NEW_BOOK:
-            text = update.message.text
-            print(text)
-            #TODO
-    except:
-        print('NOOOOOOOOOOOOOOOOOOOOOOOO')
-
-    search_answer(chat_id, reply_text, update)
+    if get_dialog_state(chat_id) == 1:
+        search_answer(chat_id, reply_text, update)
+        set_dialog_state(chat_id, 0)
+    elif get_dialog_state(chat_id) == 2:
+        add_book(chat_id, update)
+        set_dialog_state(chat_id, 0)
 
 
 def search_answer(chat_id, reply_text, update):
@@ -66,7 +90,6 @@ def search_answer(chat_id, reply_text, update):
 
     if text:
         try:
-            print(text)
             result = search_book(chat_id, text)
             if result:
                 bookcase = result.bookcase.title
@@ -84,13 +107,54 @@ def search_answer(chat_id, reply_text, update):
         synthesize(reply_text, answer_path)
         update.message.reply_voice(
             voice=(open(answer_path, 'rb')),
-            reply_markup=get_search_edit_info_keyboard()
+            reply_markup=get_search_edit_info_keyboard(get_last_book(chat_id))
         )
     else:
         update.message.reply_text(
             text=reply_text,
-            reply_markup=get_search_edit_info_keyboard()
+            reply_markup=get_search_edit_info_keyboard(get_last_book(chat_id))
+        )
 
+
+def add_book(chat_id, update):
+    user = User.objects.get(profile__tele_id=chat_id)
+    profile = user.profile
+    try:
+        file = update.message.photo[-1].get_file()
+        file_name = file.download()
+        file_path = os.path.join(settings.BASE_DIR, file_name)
+        text = scan_isbn(file_path)
+    except Exception as e:
+        print(e)
+        text = update.message.text
+    if text:
+        try:
+            book = create_book(text, user)
+            profile.last_book = book
+            profile.save()
+            update.message.reply_text(
+                text='The book profile was created successfully!\n'
+                     f'Book info:\n{get_last_book_info(chat_id)}',
+                reply_markup=get_search_edit_info_keyboard(get_last_book(chat_id)),
+            )
+        except BookDataError as e:
+            print(e)
+            update.message.reply_text(
+                text=f'No data found for the number {text}. Please fill out the form manually.',
+                reply_markup=get_add_keyboard(),
+            )
+        except NoFurnitureError as e:
+            print(e)
+            update.message.reply_text(
+                text=f'There are no bookcases or shelves in your profile. Please follow links'
+                     f' in navbar to create bookcase so that you can fill it with books :)',
+                reply_markup=get_add_keyboard()
+
+            )
+    else:
+        update.message.reply_text(
+            text='Error',
+            reply_markup=get_add_keyboard()
         )
 
 
@@ -130,9 +194,11 @@ class Command(BaseCommand):
         )
 
         message_handler_voice = MessageHandler(Filters.voice, answer)
+        message_handler_photo = MessageHandler(Filters.photo, answer)
         message_handler_text = MessageHandler(Filters.text, answer)
         buttons_handler = CallbackQueryHandler(callback=keyboard_callback_handler, pass_chat_data=True)
         updater.dispatcher.add_handler(message_handler_voice)
+        updater.dispatcher.add_handler(message_handler_photo)
         updater.dispatcher.add_handler(message_handler_text)
         updater.dispatcher.add_handler(buttons_handler)
 
@@ -157,10 +223,13 @@ TITLES = {
 }
 
 
-def get_search_edit_info_keyboard():
+def get_search_edit_info_keyboard(chat_id):
     keyboard = [
         [
-            InlineKeyboardButton(TITLES[CB_EDIT], callback_data=CB_EDIT),
+            InlineKeyboardButton(TITLES[CB_EDIT],
+                                 url=f'https://www.google.ru/',
+                                 # url=f'{BookshelfBot.secrets.my_current_url}shelves/book/{get_last_book(chat_id)}/edit/',
+                                 callback_data=CB_EDIT),
             InlineKeyboardButton(TITLES[CB_BOOK_INFO], callback_data=CB_BOOK_INFO),
         ],
         [
@@ -197,26 +266,36 @@ def keyboard_callback_handler(update: Update, context: CallbackContext):
             chat_id=chat_id,
             text="Какую книгу искать?",
         )
+        set_dialog_state(chat_id, 1)
     if data == CB_BOOK_INFO:
-        profile = Profile.objects.get(tele_id=chat_id)
-        book = profile.last_book
-        keys = {
-            'title': 'Книга: ',
-            'author': 'Автор: ',
-            'ISBN': 'ISBN: ',
-            'year_of_publication': 'Год издания: ',
-            'pages': 'Страниц: ',
-            'type_of_cover': 'Тип обложки: ',
-            'language': 'Язык: ',
-            'bookcase': 'Шкаф: ',
-            'shelf': 'Полка: ',
-        }
-        book_info = '\n'.join([f'{keys[key]}{getattr(book, key)}'
-                               for key in keys if getattr(book, key) is not None])
+        book_info = get_last_book_info(chat_id)
         context.bot.send_message(
             chat_id=chat_id,
-            text=book_info
+            text=book_info,
+            reply_markup=get_add_keyboard(),
         )
     if data == CB_NEW_BOOK:
-        pass
-        #TODO
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="Дай ИСБН чтоли",
+        )
+        set_dialog_state(chat_id, 2)
+
+
+def get_last_book_info(chat_id):
+    profile = Profile.objects.get(tele_id=chat_id)
+    book = profile.last_book
+    keys = {
+        'title': 'Книга: ',
+        'author': 'Автор: ',
+        'ISBN': 'ISBN: ',
+        'year_of_publication': 'Год издания: ',
+        'pages': 'Страниц: ',
+        'type_of_cover': 'Тип обложки: ',
+        'language': 'Язык: ',
+        'bookcase': 'Шкаф: ',
+        'shelf': 'Полка: ',
+    }
+    book_info = '\n'.join([f'{keys[key]}{getattr(book, key)}'
+                           for key in keys if getattr(book, key) is not None])
+    return book_info

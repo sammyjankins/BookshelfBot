@@ -8,6 +8,7 @@ class Profile(models.Model):
     tele_id = models.CharField(max_length=15)
     last_book = models.ForeignKey('Book', verbose_name='Last book', on_delete=models.SET_NULL, null=True)
     last_shelf = models.ForeignKey('Shelf', verbose_name='Last shelf', on_delete=models.SET_NULL, null=True)
+    state = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.user.username} profile'
