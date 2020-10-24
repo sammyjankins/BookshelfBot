@@ -16,9 +16,10 @@ class Profile(models.Model):
 
 class BookCase(models.Model):
     title = models.CharField(verbose_name='Название', max_length=100)
-    # user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
+    shelf_count = models.IntegerField(default=1)
+    section_count = models.IntegerField(default=1)
+    row_count = models.IntegerField(default=1)
 
-    # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='bookcases', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -34,11 +35,9 @@ class Shelf(models.Model):
         ('Четвертый', 'Четвертый'),
     )
     row = models.CharField(verbose_name='Ряд', max_length=100, choices=ROWS, default='')
-    # row = models.IntegerField(verbose_name='Ряды', choices=ROWS, default='')
     bookcase = models.ForeignKey(BookCase, verbose_name='Книжный шкаф', on_delete=models.CASCADE,
                                  related_name='shelves')
 
-    # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='shelves', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -50,7 +49,6 @@ class Author(models.Model):
     date_of_birth = models.CharField(verbose_name='Дата рождения', max_length=15)
     country = models.CharField(verbose_name='Страна', max_length=100)
 
-    # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='authors', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -75,7 +73,6 @@ class Book(models.Model):
     author = models.ForeignKey(Author, verbose_name='Автор', on_delete=models.CASCADE,
                                related_name='books')
 
-    # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='books', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -95,7 +92,6 @@ class Novel(models.Model):
     book = models.ForeignKey(Book, verbose_name='Книга', on_delete=models.CASCADE,
                              related_name='novels')
 
-    # trying to auth stuff
     owner = models.ForeignKey('auth.User', related_name='novels', on_delete=models.CASCADE)
 
     def __str__(self):

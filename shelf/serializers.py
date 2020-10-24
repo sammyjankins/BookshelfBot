@@ -4,6 +4,30 @@ from rest_framework.validators import UniqueValidator
 
 from shelf.models import Shelf, BookCase, Author, Book, Novel, Profile
 
+shelf_titles = {
+    1: 'первая полка',
+    2: 'вторая полка',
+    3: 'третья полка',
+    4: 'четвертая полка',
+    5: 'пятая полка',
+    6: 'шестая полка',
+    7: 'седьмая полка',
+    8: 'восьмая полка',
+    9: 'девятая полка',
+    10: 'десятая полка',
+}
+row_titles = {
+    1: 'Первый',
+    2: 'Второй',
+    3: 'Третий',
+    4: 'Четвертый',
+}
+
+sections_titles = {
+    1: 'левая',
+    2: 'правая',
+}
+
 
 # title serializers
 
@@ -124,6 +148,19 @@ class BookCaseCreateSerializer(serializers.ModelSerializer):
         model = BookCase
         fields = '__all__'
 
+    def create(self, validated_data):
+        bookcase = BookCase.objects.create(**validated_data)
+        print(bookcase, bookcase.shelf_count, bookcase.row_count, bookcase.section_count)
+        for shelf_number in range(bookcase.shelf_count):
+            for row_number in range(bookcase.row_count):
+                for sections_number in range(bookcase.section_count):
+                    Shelf.objects.create(
+                        title=f'{shelf_titles[shelf_number + 1]} {"слева" if sections_number + 1 == 1 else "справа"}',
+                        row=row_titles[row_number + 1],
+                        bookcase=bookcase,
+                        owner=bookcase.owner)
+        return bookcase
+
 
 class BookCaseUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -164,7 +201,7 @@ class ShelfListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# profile serializers
+# profil*e serializers
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

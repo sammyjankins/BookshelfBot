@@ -124,6 +124,7 @@ def add_book(chat_id, update):
         file_name = file.download()
         file_path = os.path.join(settings.BASE_DIR, file_name)
         text = scan_isbn(file_path)
+        os.remove(file_path)
     except Exception as e:
         print(e)
         text = update.message.text

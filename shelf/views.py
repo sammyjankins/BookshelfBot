@@ -11,8 +11,8 @@ from rest_framework.reverse import reverse
 from rest_framework.serializers import Serializer
 
 from shelf import serializers
-from shelf.models import BookCase, Shelf, Author, Book, Novel
-from shelf.utils import check_isbn_info, get_author_of_create, scan_isbn, create_book, BookDataError, NoFurnitureError
+from shelf.models import BookCase, Shelf, Author, Book, Novel, Profile
+from shelf.utils import scan_isbn, create_book, BookDataError, NoFurnitureError
 
 
 def book_status(book_id):
@@ -23,6 +23,11 @@ def book_status(book_id):
     else:
         book.read = False
         book.save()
+
+
+def set_last_shelf(profile, shelf):
+    profile.last_shelf = shelf
+    profile.save()
 
 
 # My views ===================================
@@ -107,6 +112,8 @@ class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, *args, **kwargs):
         put_dict = {k: v[0] if len(v) == 1 else v for k, v in QueryDict(request.body).lists()}
         put_dict['read'] = str('read' in put_dict).lower()
+        if self.name == 'book':
+            set_last_shelf(Profile.objects.get(user__username=request.user), Shelf.objects.get(pk=put_dict['shelf']))
         request.data = put_dict
         resp = super().put(request, *args, **kwargs)
         if self.name == 'novel':
