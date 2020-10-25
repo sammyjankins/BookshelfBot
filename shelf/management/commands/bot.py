@@ -5,8 +5,7 @@ import os
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
-from django.db.models import Q
-from telegram import Bot, Update, ParseMode
+from telegram import Bot, Update
 from telegram.ext import CallbackContext, Filters, MessageHandler, Updater
 from telegram.utils.request import Request
 
@@ -14,12 +13,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
 import BookshelfBot.secrets
-from shelf.management.commands.utils import num_to_words
+from shelf.management.commands.utils import num_to_words, get_last_book, search_book
 from shelf.management.commands.voice_processing import recognize, synthesize
-from shelf.models import Profile, Book
+from shelf.models import Profile
 from shelf.utils import scan_isbn, create_book, BookDataError, NoFurnitureError
 
-COMMANDS = ['добавить книгу', 'добавить шкаф', ]
 DIALOG_STATES = {
     0: 'initial',
     1: 'search',
@@ -39,17 +37,6 @@ def log_errors(f):
             raise e
 
     return inner
-
-
-def set_last_book(user, book):
-    user.last_book = book
-    user.save()
-
-
-def get_last_book(chat_id):
-    profile = Profile.objects.get(tele_id=chat_id)
-    book = profile.last_book
-    return book.id
 
 
 def set_dialog_state(chat_id, state):
@@ -136,7 +123,7 @@ def add_book(chat_id, update):
             update.message.reply_text(
                 text='The book profile was created successfully!\n'
                      f'Book info:\n{get_last_book_info(chat_id)}',
-                reply_markup=get_search_edit_info_keyboard(get_last_book(chat_id)),
+                reply_markup=get_search_edit_info_keyboard(chat_id),
             )
         except BookDataError as e:
             print(e)
@@ -159,20 +146,23 @@ def add_book(chat_id, update):
         )
 
 
-def search_book(chat_id, text):
+def get_last_book_info(chat_id):
     profile = Profile.objects.get(tele_id=chat_id)
-    user_id = profile.user.id
-    objects = Book.objects.filter(
-        (Q(title__icontains=text) |
-         Q(title__in=text.split()) |
-         Q(title__icontains=text.title()) |
-         Q(title__in=text.title().split())) &
-        Q(owner__pk=user_id)
-    )
-    result = objects.first()
-    if result:
-        set_last_book(profile, result)
-    return result
+    book = profile.last_book
+    keys = {
+        'title': 'Book: ',
+        'author': 'Author: ',
+        'ISBN': 'ISBN: ',
+        'year_of_publication': 'Year of publication: ',
+        'pages': 'Pages: ',
+        'type_of_cover': 'Type of cover: ',
+        'language': 'Language: ',
+        'bookcase': 'Bookcase: ',
+        'shelf': 'Shelf: ',
+    }
+    book_info = '\n'.join([f'{keys[key]}{getattr(book, key)}'
+                           for key in keys if getattr(book, key) is not None])
+    return book_info
 
 
 class Command(BaseCommand):
@@ -228,8 +218,8 @@ def get_search_edit_info_keyboard(chat_id):
     keyboard = [
         [
             InlineKeyboardButton(TITLES[CB_EDIT],
-                                 url=f'https://www.google.ru/',
-                                 # url=f'{BookshelfBot.secrets.my_current_url}shelves/book/{get_last_book(chat_id)}/edit/',
+                                 # url=f'https://www.google.ru/',
+                                 url=f'{BookshelfBot.secrets.my_current_url}shelves/book/{get_last_book(chat_id)}/edit/',
                                  callback_data=CB_EDIT),
             InlineKeyboardButton(TITLES[CB_BOOK_INFO], callback_data=CB_BOOK_INFO),
         ],
@@ -248,7 +238,9 @@ def get_add_keyboard():
         ],
         [
             InlineKeyboardButton(TITLES[CB_NEW_BOOK], callback_data=CB_NEW_BOOK),
-            InlineKeyboardButton(TITLES[CB_NEW_BOOKCASE], callback_data=CB_NEW_BOOKCASE),
+            InlineKeyboardButton(TITLES[CB_NEW_BOOKCASE],
+                                 url=f'{BookshelfBot.secrets.my_current_url}shelves/bookcase/create/',
+                                 callback_data=CB_NEW_BOOKCASE),
         ],
 
     ]
@@ -265,7 +257,7 @@ def keyboard_callback_handler(update: Update, context: CallbackContext):
     if data == CB_SEARCH:
         context.bot.send_message(
             chat_id=chat_id,
-            text="Какую книгу искать?",
+            text="What book should I look for?",
         )
         set_dialog_state(chat_id, 1)
     if data == CB_BOOK_INFO:
@@ -278,25 +270,6 @@ def keyboard_callback_handler(update: Update, context: CallbackContext):
     if data == CB_NEW_BOOK:
         context.bot.send_message(
             chat_id=chat_id,
-            text="Дай ИСБН чтоли",
+            text="I need the number or photo of the barcode on the back of the book.",
         )
         set_dialog_state(chat_id, 2)
-
-
-def get_last_book_info(chat_id):
-    profile = Profile.objects.get(tele_id=chat_id)
-    book = profile.last_book
-    keys = {
-        'title': 'Книга: ',
-        'author': 'Автор: ',
-        'ISBN': 'ISBN: ',
-        'year_of_publication': 'Год издания: ',
-        'pages': 'Страниц: ',
-        'type_of_cover': 'Тип обложки: ',
-        'language': 'Язык: ',
-        'bookcase': 'Шкаф: ',
-        'shelf': 'Полка: ',
-    }
-    book_info = '\n'.join([f'{keys[key]}{getattr(book, key)}'
-                           for key in keys if getattr(book, key) is not None])
-    return book_info

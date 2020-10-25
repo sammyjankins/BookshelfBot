@@ -7,6 +7,41 @@ from shelf.models import Author, BookCase, Shelf, Book
 
 URL = 'https://biblio.zone'
 
+shelf_titles = {
+    1: 'первая полка',
+    2: 'вторая полка',
+    3: 'третья полка',
+    4: 'четвертая полка',
+    5: 'пятая полка',
+    6: 'шестая полка',
+    7: 'седьмая полка',
+    8: 'восьмая полка',
+    9: 'девятая полка',
+    10: 'десятая полка',
+}
+row_titles = {
+    1: 'Первый',
+    2: 'Второй',
+    3: 'Третий',
+    4: 'Четвертый',
+}
+
+sections_titles = {
+    1: 'левая',
+    2: 'правая',
+}
+
+
+def create_shelves(bookcase):
+    for shelf_number in range(bookcase.shelf_count):
+        for row_number in range(bookcase.row_count):
+            for sections_number in range(bookcase.section_count):
+                Shelf.objects.create(
+                    title=f'{shelf_titles[shelf_number + 1]} {"слева" if sections_number + 1 == 1 else "справа"}',
+                    row=row_titles[row_number + 1],
+                    bookcase=bookcase,
+                    owner=bookcase.owner)
+
 
 def check_isbn_info(isbn):
     if not isbn:
