@@ -37,7 +37,6 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    # 'shelf.apps.ShelfConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'shelf',
     'rest_framework',
-    'users.apps.UsersConfig',
     'rest_framework.authtoken',
     'crispy_forms',
 ]
@@ -87,8 +85,14 @@ WSGI_APPLICATION = 'BookshelfBot.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
