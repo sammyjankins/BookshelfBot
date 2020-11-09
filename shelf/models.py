@@ -6,8 +6,9 @@ from django.db import models
 class Profile(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
     tele_id = models.CharField(max_length=15)
-    last_book = models.ForeignKey('Book', verbose_name='Last book', on_delete=models.SET_NULL, null=True)
-    last_shelf = models.ForeignKey('Shelf', verbose_name='Last shelf', on_delete=models.SET_NULL, null=True)
+    last_book = models.ForeignKey('Book', verbose_name='Last book', on_delete=models.SET_NULL, null=True, default='')
+    last_shelf = models.ForeignKey('Shelf', verbose_name='Last shelf', on_delete=models.SET_NULL, null=True,
+                                   default='')
     state = models.IntegerField(default=0)
 
     def __str__(self):

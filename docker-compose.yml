@@ -8,7 +8,15 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
   web:
-    build: .
+    environment:
+      - MAIL_SERVER_LOGIN=
+      - MAIL_SERVER_PASS=
+      - TELEGRAM_TOKEN=
+      - YANDEX_OAUTH=
+      - YANDEX_FOLDER_ID=
+      - MY_CURRENT_URL=
+      - CURRENT_HOST=
+    image: sammyjankins/bookimage
     command: bash -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
     container_name: shelf
     volumes:

@@ -42,14 +42,12 @@ def set_last_book(user, book):
     user.save()
 
 
-def get_last_book(chat_id):
-    profile = Profile.objects.get(tele_id=chat_id)
+def get_last_book(profile):
     book = profile.last_book
     return book.id
 
 
-def search_book(chat_id, text):
-    profile = Profile.objects.get(tele_id=chat_id)
+def search_book(profile, text):
     user_id = profile.user.id
     objects = Book.objects.filter(
         (Q(title__icontains=text) |
@@ -62,3 +60,21 @@ def search_book(chat_id, text):
     if result:
         set_last_book(profile, result)
     return result
+
+
+def get_last_book_info(profile):
+    book = profile.last_book
+    keys = {
+        'title': 'Book: ',
+        'author': 'Author: ',
+        'ISBN': 'ISBN: ',
+        'year_of_publication': 'Year of publication: ',
+        'pages': 'Pages: ',
+        'type_of_cover': 'Type of cover: ',
+        'language': 'Language: ',
+        'bookcase': 'Bookcase: ',
+        'shelf': 'Shelf: ',
+    }
+    book_info = '\n'.join([f'{keys[key]}{getattr(book, key)}'
+                           for key in keys if getattr(book, key) is not None])
+    return book_info

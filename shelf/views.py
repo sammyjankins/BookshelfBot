@@ -352,9 +352,8 @@ class UserRegisterView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         if not serializer.is_valid():
-            return Response({'serializer': self.serializer_class,
-                             'message': 'Invalid data, please read following error messages',
-                             'errors': serializer.errors})
+            messages.warning(request, 'An account with the telegram id you specified already exists.')
+            return self.get(request)
         serializer.save()
         messages.success(request, f'Account created for {serializer.data["username"]}')
         return HttpResponseRedirect(reverse('login'))

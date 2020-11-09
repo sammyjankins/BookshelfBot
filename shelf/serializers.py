@@ -64,7 +64,7 @@ class NovelListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# bookcase serializers ++++++++++++++++++++++++++++++++++++++
+# book serializers ++++++++++++++++++++++++++++++++++++++
 
 
 class BookCreateSerializer(serializers.ModelSerializer):
@@ -171,7 +171,7 @@ class ShelfListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# profil*e serializers
+# profile serializers
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -180,6 +180,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    tele_id = serializers.CharField(
+        max_length=15,
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+
     class Meta:
         model = Profile
         fields = ['id', 'tele_id']

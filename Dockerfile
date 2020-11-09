@@ -27,3 +27,11 @@ RUN locale-gen ru_RU.UTF-8 && dpkg-reconfigure locales
 
 COPY . /code/
 
+EXPOSE 8000
+
+# how to remove all containers of images in windows powershell:
+# $containers = docker ps -a -q
+# foreach ($container in $containers) {docker container rm $container -f}
+#
+# $images = docker images -a -q
+# foreach ($image in $images) {docker image rm $image -f}

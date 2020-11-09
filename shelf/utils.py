@@ -66,11 +66,15 @@ def check_isbn_info(isbn):
                      }
 
         book_data = {data_keys[key]: table_data[key] for key in data_keys if key in table_data}
+        try:
+            pages = ''.join([item for item in book_data['pages'] if item.isdigit()])
+        except:
+            pages = '0'
         book_data.update({'title': book_soup.find('title').text,
-                          'pages': ''.join([item for item in book_data['pages'] if item.isdigit()])})
+                          'pages': pages})
         return book_data
     except Exception as e:
-        return None
+        print(e)
 
 
 def get_author_of_create(author_name, user=None):
@@ -96,21 +100,32 @@ def scan_isbn(img_file):
         return None
 
 
-def create_book(isbn, user, from_tg=False):
+def create_book(isbn, user):
     book_data = check_isbn_info(isbn)
     if book_data is not None:
+        print(book_data)
         author_name = book_data['author']
         author_object = get_author_of_create(author_name=author_name, user=user)
         bookcase = BookCase.objects.filter(owner__username=user).last()
-        shelf = Shelf.objects.filter(owner__username=user).last()
+
+        if user.profile.last_shelf:
+            shelf = user.profile.last_shelf
+        else:
+            shelf = Shelf.objects.filter(owner__username=user).last()
+            user.profile.last_shelf = shelf
+            user.profile.save()
+
         if not bookcase or not shelf:
-            return None
+            raise NoFurnitureError
+
         book_data.update({'author': author_object,
                           'bookcase': bookcase,
                           'shelf': shelf,
                           'owner': user, })
         book = Book(**book_data)
         book.save()
+        user.profile.last_book = book
+        user.profile.save()
         return book
     else:
         return
