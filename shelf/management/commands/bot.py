@@ -131,7 +131,8 @@ def add_book(chat_id, profile, update):
         text = update.message.text
     if text:
         try:
-            create_book(text, user)
+            create_book(text, user, profile)
+            profile = Profile.objects.get(tele_id=profile.tele_id)  # refreshing profile to work with actual data
             update.message.reply_text(
                 text='The book profile was created successfully!\n'
                      f'Book info:\n{get_last_book_info(profile)}',

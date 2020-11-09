@@ -100,7 +100,7 @@ def scan_isbn(img_file):
         return None
 
 
-def create_book(isbn, user):
+def create_book(isbn, user, profile):
     book_data = check_isbn_info(isbn)
     if book_data is not None:
         print(book_data)
@@ -108,13 +108,12 @@ def create_book(isbn, user):
         author_object = get_author_of_create(author_name=author_name, user=user)
         bookcase = BookCase.objects.filter(owner__username=user).last()
 
-        if user.profile.last_shelf:
-            shelf = user.profile.last_shelf
+        if profile.last_shelf:
+            shelf = profile.last_shelf
         else:
             shelf = Shelf.objects.filter(owner__username=user).last()
-            user.profile.last_shelf = shelf
-            user.profile.save()
-
+            profile.last_shelf = shelf
+            profile.save()
         if not bookcase or not shelf:
             raise NoFurnitureError
 
@@ -124,8 +123,8 @@ def create_book(isbn, user):
                           'owner': user, })
         book = Book(**book_data)
         book.save()
-        user.profile.last_book = book
-        user.profile.save()
+        profile.last_book = book
+        profile.save()
         return book
     else:
         return
