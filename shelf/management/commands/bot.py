@@ -309,7 +309,7 @@ def keyboard_callback_handler(update: Update, context: CallbackContext):
     else:
         context.bot.send_message(
             chat_id=chat_id,
-            text=f'Для продолжения работы необходимо зарегистрироваться и создать базу данных.'
+            text=f'Для продолжения работы необходимо зарегистрироваться и заполнить базу данных.'
                  f' При регистрации укажите ваш telegram ID - {chat_id}',
             reply_markup=get_register_keyboard(),
         )
