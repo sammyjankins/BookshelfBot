@@ -78,7 +78,6 @@ def answer(update: Update, context: CallbackContext):
                       f' При регистрации укажите ваш telegram ID - {chat_id}')
         update.message.reply_text(
             text=reply_text,
-            reply_markup=get_register_keyboard(),
         )
 
 
@@ -198,7 +197,6 @@ CB_NEW_BOOK = "callback_button_new_book"
 CB_NEW_BOOKCASE = "callback_button_new_bookcase"
 CB_EDIT = "callback_button_edit"
 CB_BOOK_INFO = "callback_button_book_info"
-CB_REGISTER = "callback_button_register"
 
 TITLES = {
     CB_SEARCH: "Найти книгу",
@@ -206,8 +204,6 @@ TITLES = {
     CB_NEW_BOOKCASE: "Добавить шкаф",
     CB_EDIT: "Редактировать",
     CB_BOOK_INFO: "Инфо",
-    CB_REGISTER: "Регистрация",
-
 }
 
 
@@ -257,18 +253,6 @@ def get_nolastbook_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_register_keyboard():
-    keyboard = [
-        [
-            InlineKeyboardButton(TITLES[CB_REGISTER],
-                                 url=f'{os.environ.get("MY_CURRENT_URL")}shelves/user/register/',
-                                 callback_data=CB_REGISTER),
-        ],
-
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-
 def keyboard_callback_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     data = query.data
@@ -311,5 +295,4 @@ def keyboard_callback_handler(update: Update, context: CallbackContext):
             chat_id=chat_id,
             text=f'Для продолжения работы необходимо зарегистрироваться и создать базу данных.'
                  f' При регистрации укажите ваш telegram ID - {chat_id}',
-            reply_markup=get_register_keyboard(),
         )

@@ -9,13 +9,13 @@ services:
       - POSTGRES_PASSWORD=postgres
   web:
     environment:
-      - MAIL_SERVER_LOGIN=gorysilhouette@gmail.com
-      - MAIL_SERVER_PASS=oxrmuspluglvohyr
-      - TELEGRAM_TOKEN=1212136039:AAG-ijPCyPgpMOEUnU0fqeiwGbwaLbU_bVM
-      - YANDEX_OAUTH=AgAAAAA6_rrpAATuwfnh0V0W50AqngZl7x_kCmk
-      - YANDEX_FOLDER_ID=b1g6ovb59neq888uefhe
-      - MY_CURRENT_URL=http://192.168.99.100:8000/
-      - CURRENT_HOST=192.168.99.100
+      - MAIL_SERVER_LOGIN=
+      - MAIL_SERVER_PASS=
+      - TELEGRAM_TOKEN=
+      - YANDEX_OAUTH=
+      - YANDEX_FOLDER_ID=
+      - MY_CURRENT_URL=
+      - CURRENT_HOST=
     image: sammyjankins/bookimage
     command: bash -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
     container_name: shelf
