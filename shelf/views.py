@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect, QueryDict
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404, ListAPIView
-from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.serializers import Serializer
@@ -34,7 +34,7 @@ def set_last_shelf(profile, shelf):
 
 
 class MyCreateView(generics.CreateAPIView):
-    renderer_classes = [TemplateHTMLRenderer]
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer, ]
     serializer_class = Serializer
     name = ''
     fields = {}
@@ -53,7 +53,7 @@ class MyCreateView(generics.CreateAPIView):
 
         isbn = request.data['parse_isbn'] or scan_isbn(request.data['barcode'])
         try:
-            book = create_book(isbn, request.user)
+            book = create_book(isbn, request.user, Profile.objects.get(user=request.user))
             messages.info(request, 'The book profile was created successfully! You were redirected to the edit page to '
                                    'correct information about book and it\'s location in bookshelf if you want.')
             return HttpResponseRedirect(reverse(f'shelves:book/edit/', args=[book.id]))
@@ -127,7 +127,7 @@ class MyUpdateDetailDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MyListView(ListAPIView):
-    renderer_classes = [TemplateHTMLRenderer]
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer, ]
     in_class = Model
 
     def get_queryset(self, *args, **kwargs):

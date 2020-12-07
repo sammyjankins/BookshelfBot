@@ -26,7 +26,9 @@ SECRET_KEY = '=en4w)3%px2*&rm*=7n5qfr(@3f5_-ht6ecd7rovi6+n-z%@hp'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    os.environ.get("CURRENT_HOST"),
+    # os.environ.get("CURRENT_HOST"),
+    '192.168.1.4',
+    '127.0.0.1',
 ]
 
 # Application definition
@@ -80,14 +82,21 @@ WSGI_APPLICATION = 'BookshelfBot.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
+        # deploy/docker config:
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'postgres',
+        # 'USER': 'postgres',
+        # 'PASSWORD': 'postgres',
+        # 'HOST': 'db',
+        # 'PORT': 5432,
+
+        # local testing config:
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'books_db',
+        'USER': 'books_user',
         'PASSWORD': 'postgres',
-        'HOST': 'db',
-        'PORT': 5432,
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 

@@ -70,7 +70,8 @@ def check_isbn_info(isbn):
             pages = ''.join([item for item in book_data['pages'] if item.isdigit()])
         except:
             pages = '0'
-        book_data.update({'title': book_soup.find('title').text,
+        title = book_soup.find('div', attrs={'class': 'book-detail'}).find('h1').text
+        book_data.update({'title': title,
                           'pages': pages})
         return book_data
     except Exception as e:
