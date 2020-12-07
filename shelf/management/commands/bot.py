@@ -74,7 +74,7 @@ def answer(update: Update, context: CallbackContext):
             add_book(chat_id, profile, update)
             set_dialog_state(profile, 0)
     else:
-        reply_text = (f'Для продолжения работы необходимо зарегистрироваться и создать базу данных.'
+        reply_text = (f'Для продолжения работы необходимо зарегистрироваться и заполнить базу данных.'
                       f' При регистрации укажите ваш telegram ID - {chat_id}')
         update.message.reply_text(
             text=reply_text,
